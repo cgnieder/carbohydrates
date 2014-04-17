@@ -1,0 +1,89 @@
+\def\carbohydrate@date{2014/01/23}
+\def\carbohydrate@version{v0.0}
+\def\carbohydrate@info{carbohydrate molecules with chemfig}
+
+\ProvidesPackage{carbohydrates}[%
+  \carbohydrate@date\space
+  \carbohydrate@version\space
+  \carbohydrate@info\space (CN)]
+
+\RequirePackage{cnltx-base}
+\RequirePackage{chemfig,xcolor}
+
+% --------------------------------------------------------------------------
+% message handling
+% generic help message:
+\def\carbohydrate@error@message{%
+  For details have a look at the `carbohydrates' manual.%
+}
+
+% create message macros:
+\cnltx@create@generic@message{carbohydrate}{carbohydrates}{Error}{\carbohydrate@error@message}
+\cnltx@create@generic@message{carbohydrate}{carbohydrates}{Warning}{}
+\cnltx@create@generic@message{carbohydrate}{carbohydrates}{WarningNoLine}{}
+\cnltx@create@generic@message{carbohydrate}{carbohydrates}{Info}{}
+
+\colorlet{anomerO}{black}
+\colorlet{anomerH}{black}
+\colorlet{ringO}{black}
+
+%% Fischer projections:
+% sceletons:
+\newcommand\carbohydrate@define@Csubmols[1]{%
+  \colorlet{O-C#1}{black}%
+  \colorlet{H-C#1}{black}%
+  \definesubmol{carbohydrate@OHr@fischer@skeleton@C#1}
+    {(-[:0]{\textcolor{O-C#1}{O}}{\textcolor{H-C#1}{H}})}%
+  \definesubmol{carbohydrate@OHl@fischer@skeleton@C#1}
+    {(-[:180]{\textcolor{H-C#1}{H}}{\textcolor{O-C#1}{O}})}%
+  \definesubmol{carbohydrate@OH0@fischer@skeleton@C#1}{}%
+}
+\carbohydrate@define@Csubmols{2}
+\carbohydrate@define@Csubmols{3}
+\carbohydrate@define@Csubmols{4}
+\carbohydrate@define@Csubmols{5}
+
+\definesubmol{carbohydrate@aldehyde@fischer@skeleton}
+  {(=_[:45]{\textcolor{anomerO}{O}})}
+
+\definesubmol{carbohydrate@OHalpha@fischer@skeleton}
+  {(-[:0]{\textcolor{anomerO}{O}}{\textcolor{anomerH}{H}})}
+\definesubmol{carbohydrate@OHbeta@fischer@skeleton}
+  {(-[:180]{\textcolor{anomerH}{H}}{\textcolor{anomerO}{O}})}
+
+\def\carbohydrate@fischer@skeleton@shell#1#2#3#4\q@stop{%
+  \chemfig{
+    !{carbohydrate@aldehyde@fischer@skeleton}
+    -[:-90]!{carbohydrate@OH#1@fischer@skeleton@C2}
+    -[:-90]!{carbohydrate@OH#2@fischer@skeleton@C3}
+    -[:-90]!{carbohydrate@OH#3@fischer@skeleton@C4}
+    -[:-90]!{carbohydrate@OH#4@fischer@skeleton@C5}
+    -[:-90](-[:0]{O}{H})
+  }%
+}
+\newcommand*\carbohydrate@fischer@skeleton[1]{%
+  \carbohydrate@fischer@skeleton@shell#1\q@stop
+}
+\def\carbohydrate@fischer@pyranose@skeleton@shell#1#2#3#4\q@stop{%
+  \chemfig{
+    !{carbohydrate@OH#1@fischer@skeleton}(-[:90]-[:0]-?)
+    -[:-90]!{carbohydrate@OH#2@fischer@skeleton@C2}
+    -[:-90]!{carbohydrate@OH#3@fischer@skeleton@C3}
+    -[:-90]!{carbohydrate@OH#4@fischer@skeleton@C4}
+    -[:-90](-[:0]{\textcolor{ringO}{O}}-?)
+    -[:-90](-[:0]{O}{H})
+  }%
+}
+\newcommand*\carbohydrate@fischer@pyranose@skeleton[2]{%
+  \carbohydrate@fischer@pyranose@skeleton@shell{#1}#2\q@stop
+}
+
+% with all H and C drawn:
+\definesubmol{carbohydrate@OHr@fischer@full}{(-[:0]{O}{H})(-[:180]H)}
+\definesubmol{carbohydrate@OHl@fischer@full}{(-[:180]{H}{O})(-[:0]H)}
+\definesubmol{carbohydrate@OH0@fischer@full}{(-[:180]H)(-[:0]H)}
+
+\newcommand*\carbohydratering[2]{\carbohydrate@fischer@pyranose@skeleton{#1}{#2}}
+\newcommand*\carbohydrate[1]{\carbohydrate@fischer@skeleton{#1}}
+
+\endinput
