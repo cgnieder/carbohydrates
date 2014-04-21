@@ -1,11 +1,38 @@
-\def\carbohydrate@date{2014/01/23}
-\def\carbohydrate@version{v0.0}
-\def\carbohydrate@info{carbohydrate molecules with chemfig}
+% --------------------------------------------------------------------------
+% the CARBOHYDRATES package
+% 
+%   ready draw carbohadrates with chemfig
+%
+% --------------------------------------------------------------------------
+% Clemens Niederberger
+% Web:    https://github.com/cgnieder/carbohydrates
+% E-Mail: contact@mychemistry.eu
+% --------------------------------------------------------------------------
+% Copyright 2014 Clemens Niederberger
+% 
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+% 
+% This work has the LPPL maintenance status `maintained'.
+% 
+% The Current Maintainer of this work is Clemens Niederberger.
+% --------------------------------------------------------------------------
+% If you have any ideas, questions, suggestions or bugs to report, please
+% feel free to contact me.
+% --------------------------------------------------------------------------
+\def\cbhdr@date{2014/01/23}
+\def\cbhdr@version{v0.0}
+\def\cbhdr@info{carbohydrate molecules with chemfig}
 
 \ProvidesPackage{carbohydrates}[%
-  \carbohydrate@date\space
-  \carbohydrate@version\space
-  \carbohydrate@info\space (CN)]
+  \cbhdr@date\space
+  \cbhdr@version\space
+  \cbhdr@info\space (CN)]
 
 \RequirePackage{cnltx-base}
 \RequirePackage{chemfig,xcolor}
@@ -13,77 +40,236 @@
 % --------------------------------------------------------------------------
 % message handling
 % generic help message:
-\def\carbohydrate@error@message{%
+\def\cbhdr@error@message{%
   For details have a look at the `carbohydrates' manual.%
 }
 
 % create message macros:
-\cnltx@create@generic@message{carbohydrate}{carbohydrates}{Error}{\carbohydrate@error@message}
-\cnltx@create@generic@message{carbohydrate}{carbohydrates}{Warning}{}
-\cnltx@create@generic@message{carbohydrate}{carbohydrates}{WarningNoLine}{}
-\cnltx@create@generic@message{carbohydrate}{carbohydrates}{Info}{}
+\cnltx@create@generic@message{cbhdr}{carbohydrates}{Error}{\cbhdr@error@message}
+\cnltx@create@generic@message{cbhdr}{carbohydrates}{Warning}{}
+\cnltx@create@generic@message{cbhdr}{carbohydrates}{WarningNoLine}{}
+\cnltx@create@generic@message{cbhdr}{carbohydrates}{Info}{}
 
-\colorlet{anomerO}{black}
-\colorlet{anomerH}{black}
-\colorlet{ringO}{black}
+% --------------------------------------------------------------------------
+% tools
+\def\robustdef{\protected\def}
 
+% --------------------------------------------------------------------------
+% colors
+\colorlet{cbhdr@anomerO}{black}
+\colorlet{cbhdr@anomerH}{black}
+\colorlet{cbhdr@ringO}{black}
+
+\newcommand*\cbhdr@atom@color[2]{\unexpanded{\textcolor{#1}{#2}}}
+
+% --------------------------------------------------------------------------
 %% Fischer projections:
-% sceletons:
-\newcommand\carbohydrate@define@Csubmols[1]{%
+\newcommand*\cbhdr@OH[1]{\cbhdr@atom@color{O-C#1}{O}|\cbhdr@atom@color{H-C#1}{H}}
+\newcommand*\cbhdr@HO[1]{\cbhdr@atom@color{H-C#1}{H}|\cbhdr@atom@color{O-C#1}{O}}
+\newcommand*\cbhdr@ring@O{\cbhdr@atom@color{cbhdr@ringO}{O}}
+\newcommand*\cbhdr@anomer@O{\cbhdr@atom@color{cbhdr@anomerO}{O}}
+\newcommand*\cbhdr@anomer@OH{%
+  \cbhdr@atom@color{cbhdr@anomerO}{O}|%
+  \cbhdr@atom@color{cbhdr@anomerH}{H}%
+}
+\newcommand*\cbhdr@anomer@HO{%
+  \cbhdr@atom@color{cbhdr@anomerH}{H}|%
+  \cbhdr@atom@color{cbhdr@anomerO}{O}%
+}
+
+\newrobustcmd*\cbhdr@definesubmol@x{\cnltx@expandargs(nx)\definesubmol}
+\newrobustcmd*\cbhdr@chemfig@x{\cnltx@expandargs(x)\chemfig}
+
+\newrobustcmd\cbhdr@define@Csubmols[1]{%
   \colorlet{O-C#1}{black}%
   \colorlet{H-C#1}{black}%
-  \definesubmol{carbohydrate@OHr@fischer@skeleton@C#1}
-    {(-[:0]{\textcolor{O-C#1}{O}}{\textcolor{H-C#1}{H}})}%
-  \definesubmol{carbohydrate@OHl@fischer@skeleton@C#1}
-    {(-[:180]{\textcolor{H-C#1}{H}}{\textcolor{O-C#1}{O}})}%
-  \definesubmol{carbohydrate@OH0@fischer@skeleton@C#1}{}%
+  \colorlet{C#1}{black}%
+  % sceletons:
+  \cbhdr@definesubmol@x{cbhdr@OHr@fischer@skeleton@C#1}{(-[:0]\cbhdr@OH{#1})}%
+  \cbhdr@definesubmol@x{cbhdr@OHl@fischer@skeleton@C#1}{(-[:180]\cbhdr@HO{#1})}%
+  \cbhdr@definesubmol@x{cbhdr@OH0@fischer@skeleton@C#1}{}%
+  % with C and H:
+  \cbhdr@definesubmol@x{cbhdr@OHr@fischer@C#1}{(-[:0]\cbhdr@OH{#1})(-[:180]H)}%
+  \cbhdr@definesubmol@x{cbhdr@OHl@fischer@C#1}{(-[:180]\cbhdr@HO{#1})(-[:0]H)}%
+  \cbhdr@definesubmol@x{cbhdr@OH0@fischer@C#1}{(-[:180]H)(-[:0]H)}%
+  % haworth
+  \ifnum#1=5\relax
+    \cbhdr@definesubmol@x{cbhdr@OHr@haworth@C#1}{(-[:0]\cbhdr@OH{#1})}%
+    \cbhdr@definesubmol@x{cbhdr@OHl@haworth@C#1}{(-[:180,.5]\cbhdr@HO{#1})}%
+  \else
+    \cbhdr@definesubmol@x{cbhdr@OHr@haworth@C#1}{(-[:-90,.5,,1]\cbhdr@OH{#1})}%
+    \cbhdr@definesubmol@x{cbhdr@OHl@haworth@C#1}{(-[:90,.5,,1]\cbhdr@OH{#1})}%
+  \fi
+  \definesubmol{cbhdr@OH0@haworth@C#1}{}%
 }
-\carbohydrate@define@Csubmols{2}
-\carbohydrate@define@Csubmols{3}
-\carbohydrate@define@Csubmols{4}
-\carbohydrate@define@Csubmols{5}
+\cbhdr@define@Csubmols{2}
+\cbhdr@define@Csubmols{3}
+\cbhdr@define@Csubmols{4}
+\cbhdr@define@Csubmols{5}
 
-\definesubmol{carbohydrate@aldehyde@fischer@skeleton}
-  {(=_[:45]{\textcolor{anomerO}{O}})}
+\cbhdr@definesubmol@x{cbhdr@aldehyde@fischer@skeleton}{(=_[:30]\cbhdr@anomer@O)}
+\cbhdr@definesubmol@x{cbhdr@OHalpha@fischer@skeleton}{(-[:0]\cbhdr@anomer@OH)}
+\cbhdr@definesubmol@x{cbhdr@OHbeta@fischer@skeleton}{(-[:180]\cbhdr@anomer@HO)}
+\cbhdr@definesubmol@x{cbhdr@aldehyde@fischer}{(=_[:30]\cbhdr@anomer@O)(-[:150]H)}
+\cbhdr@definesubmol@x{cbhdr@OHalpha@fischer}{(-[:0]\cbhdr@anomer@OH)(-[:180]H)}
+\cbhdr@definesubmol@x{cbhdr@OHbeta@fischer}{(-[:180]\cbhdr@anomer@HO)(-[:0]H)}
+\cbhdr@definesubmol@x{cbhdr@OHalpha@haworth}{(-[:-90,.5,1]\cbhdr@anomer@OH)}
+\cbhdr@definesubmol@x{cbhdr@OHbeta@haworth}{(-[:90,.5,1]\cbhdr@anomer@OH)}
 
-\definesubmol{carbohydrate@OHalpha@fischer@skeleton}
-  {(-[:0]{\textcolor{anomerO}{O}}{\textcolor{anomerH}{H}})}
-\definesubmol{carbohydrate@OHbeta@fischer@skeleton}
-  {(-[:180]{\textcolor{anomerH}{H}}{\textcolor{anomerO}{O}})}
 
-\def\carbohydrate@fischer@skeleton@shell#1#2#3#4\q@stop{%
-  \chemfig{
-    !{carbohydrate@aldehyde@fischer@skeleton}
-    -[:-90]!{carbohydrate@OH#1@fischer@skeleton@C2}
-    -[:-90]!{carbohydrate@OH#2@fischer@skeleton@C3}
-    -[:-90]!{carbohydrate@OH#3@fischer@skeleton@C4}
-    -[:-90]!{carbohydrate@OH#4@fischer@skeleton@C5}
-    -[:-90](-[:0]{O}{H})
+% naming scheme:
+% <module>@<model>@<chain>/<ring>(@<ringtype>)
+
+% we'll use those later to build up the needed command names:
+\newcommand*\cbhdr@model{}    % fischer/haworth/chair
+\newcommand*\cbhdr@fischer{}  % @skeleton
+\newcommand*\cbhdr@form{}     % chain/ring
+\newcommand*\cbhdr@chain{chain}
+\newcommand*\cbhdr@ring{ring@\cbhdr@ringtype}
+\newcommand*\cbhdr@ringtype{} % pyranose/furanose
+
+% skeleton fomulae:
+\robustdef\cbhdr@hexose@fischer@skeleton@chain@aux#1#2#3#4\q@stop{%
+  \cbhdr@chemfig@x{
+    !{cbhdr@aldehyde@fischer@skeleton}
+    -[:-90]!{cbhdr@OH#1@fischer@skeleton@C2}
+    -[:-90]!{cbhdr@OH#2@fischer@skeleton@C3}
+    -[:-90]!{cbhdr@OH#3@fischer@skeleton@C4}
+    -[:-90]!{cbhdr@OH#4@fischer@skeleton@C5}
+    -[:-90](-[:0]OH)
   }%
 }
-\newcommand*\carbohydrate@fischer@skeleton[1]{%
-  \carbohydrate@fischer@skeleton@shell#1\q@stop
+\newrobustcmd*\cbhdr@hexose@fischer@skeleton@chain[1]{%
+  \cbhdr@hexose@fischer@skeleton@chain@aux#1\q@stop
 }
-\def\carbohydrate@fischer@pyranose@skeleton@shell#1#2#3#4\q@stop{%
-  \chemfig{
-    !{carbohydrate@OH#1@fischer@skeleton}(-[:90]-[:0]-?)
-    -[:-90]!{carbohydrate@OH#2@fischer@skeleton@C2}
-    -[:-90]!{carbohydrate@OH#3@fischer@skeleton@C3}
-    -[:-90]!{carbohydrate@OH#4@fischer@skeleton@C4}
-    -[:-90](-[:0]{\textcolor{ringO}{O}}-?)
-    -[:-90](-[:0]{O}{H})
+
+\robustdef\cbhdr@hexose@fischer@skeleton@ring@pyranose@aux#1#2#3#4#5\q@stop{%
+  \cbhdr@chemfig@x{
+    !{cbhdr@OH#1@fischer@skeleton}(-[:90]-[:0]-?)
+    -[:-90]!{cbhdr@OH#2@fischer@skeleton@C2}
+    -[:-90]!{cbhdr@OH#3@fischer@skeleton@C3}
+    -[:-90]!{cbhdr@OH#4@fischer@skeleton@C4}
+    -[:-90](-[:0]\cbhdr@ring@O-?)
+    -[:-90](-[:0]OH)
   }%
 }
-\newcommand*\carbohydrate@fischer@pyranose@skeleton[2]{%
-  \carbohydrate@fischer@pyranose@skeleton@shell{#1}#2\q@stop
+\newrobustcmd*\cbhdr@hexose@fischer@skeleton@ring@pyranose[1]{%
+  \cbhdr@hexose@fischer@skeleton@ring@pyranose@aux{\cbhdr@anomer}#1\q@stop
 }
 
-% with all H and C drawn:
-\definesubmol{carbohydrate@OHr@fischer@full}{(-[:0]{O}{H})(-[:180]H)}
-\definesubmol{carbohydrate@OHl@fischer@full}{(-[:180]{H}{O})(-[:0]H)}
-\definesubmol{carbohydrate@OH0@fischer@full}{(-[:180]H)(-[:0]H)}
+% with C and H:
+\robustdef\cbhdr@hexose@fischer@chain@aux#1#2#3#4\q@stop{%
+  \cbhdr@chemfig@x{
+    C!{cbhdr@aldehyde@fischer}
+    -[:-90]C!{cbhdr@OH#1@fischer@C2}
+    -[:-90]C!{cbhdr@OH#2@fischer@C3}
+    -[:-90]C!{cbhdr@OH#3@fischer@C4}
+    -[:-90]C!{cbhdr@OH#4@fischer@C5}
+    -[:-90]C(-[:0]OH)(-[:180]H)
+    -[:-90]H
+  }%
+}
+\newrobustcmd*\cbhdr@hexose@fischer@chain[1]{%
+  \cbhdr@hexose@fischer@chain@aux#1\q@stop
+}
 
-\newcommand*\carbohydratering[2]{\carbohydrate@fischer@pyranose@skeleton{#1}{#2}}
-\newcommand*\carbohydrate[1]{\carbohydrate@fischer@skeleton{#1}}
+\robustdef\cbhdr@hexose@fischer@ring@pyranose@aux#1#2#3#4#5\q@stop{%
+  \cbhdr@chemfig@x{
+    C!{cbhdr@OH#1@fischer}(-[:90]-[:0]-?)
+    -[:-90]C!{cbhdr@OH#2@fischer@C2}
+    -[:-90]C!{cbhdr@OH#3@fischer@C3}
+    -[:-90]C!{cbhdr@OH#4@fischer@C4}
+    -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
+    -[:-90]C(-[:0]OH)(-[:180]H)
+    -[:-90]H
+  }%
+}
+\newrobustcmd*\cbhdr@hexose@fischer@ring@pyranose[1]{%
+  \cbhdr@hexose@fischer@ring@pyranose@aux{\cbhdr@anomer}#1\q@stop
+}
+
+% Haworth
+\newcommand*\cbhdr@decr{-} % >
+\newcommand*\cbhdr@thick{} % line width=3pt
+\newcommand*\cbhdr@incr{-} % <
+
+\robustdef\cbhdr@hexose@haworth@chain@aux#1#2#3#4\q@stop{%
+  \cbhdr@chemfig@x{
+    -[:30]
+    ?(-[:90,.5]-[:150,.5]HO)!{cbhdr@OH#1@haworth@C5}-[,,,,draw=none]
+    -[:-30,,1,,draw=none](=_[:0]\cbhdr@anomer@O)
+    \cbhdr@incr[:-150]!{cbhdr@OH#1@haworth@C2}
+    -[:-180,,,,\cbhdr@thick]!{cbhdr@OH#2@haworth@C3}
+    \cbhdr@decr[:150]?!{cbhdr@OH#3@haworth@C4}
+  }%
+}
+\newrobustcmd*\cbhdr@hexose@haworth@chain[1]{%
+  \cbhdr@hexose@haworth@chain@aux#1\q@stop
+}
+
+\robustdef\cbhdr@hexose@haworth@ring@pyranose@aux#1#2#3#4#5\q@stop{%
+  \cbhdr@chemfig@x{
+    -[:30]
+    ?(-[:90,.5]-[:150,.5]HO)-\cbhdr@ring@O
+    -[:-30]!{cbhdr@OH#1@haworth}
+    \cbhdr@incr[:-150]!{cbhdr@OH#2@haworth@C2}
+    -[:-180,,,,\cbhdr@thick]!{cbhdr@OH#3@haworth@C3}
+    \cbhdr@decr[:150]?!{cbhdr@OH#4@haworth@C4}
+  }%
+}
+
+\newrobustcmd*\cbhdr@hexose@haworth@ring@pyranose[1]{%
+  \cbhdr@hexose@haworth@ring@pyranose@aux{\cbhdr@anomer}#1\q@stop
+}
+
+% <module>@<model>@<chain>/<ring>(@<ringtype>)
+
+% we'll use those later to build up the needed command names:
+% \newcommand*\cbhdr@model{}    % fischer/haworth/chair
+% \newcommand*\cbhdr@fischer{}  % @skeleton
+% \newcommand*\cbhdr@form{}     % chain/ring
+% \newcommand*\cbhdr@chain{chain}
+% \newcommand*\cbhdr@ring{ring@\cbhdr@ringtype}
+% \newcommand*\cbhdr@ringtype{} % pyranose/furanose
+
+\pgfkeys{
+  cbhdr/.cd,
+    model/.is choice ,
+    model/fischer/.is choice ,
+    model/fischer/skeleton/.code = \def\cbhdr@model{fischer@skeleton} ,
+    model/fischer/full/.code = \def\cbhdr@model{fischer} ,
+    model/fischer/.default = full ,
+    model/haworth/.code = \def\cbhdr@model{haworth} ,
+    model/chair/.code = \def\cbhdr@model{chair} ,
+    chain/.code = \def\cbhdr@constitution{chain} ,
+    ring/.is choice ,
+    ring/true/.code = \def\cbhdr@constitution{ring@pyranose} ,
+    ring/pyranose/.code = \def\cbhdr@constitution{ring@pyranose} ,
+    ring/furanose/.code = \def\cbhdr@constitution{ring@furanose} ,
+    ring/.default = true ,
+    anomer/.is choice ,
+    anomer/alpha/.code = \def\cbhdr@anomer{alpha} ,
+    anomer/beta/.code = \def\cbhdr@anomer{beta} ,
+    length/.is choice ,
+    length/6/.code = \def\cbhdr@length{hexose} ,
+    length/5/.code = \def\cbhdr@length{pentose} ,
+    length/4/.code = \def\cbhdr@length{tetrose} ,
+    length/3/.code = \def\cbhdr@length{triose} ,
+    defaults/.style = {
+      model = fischer ,
+      chain ,
+      anomer = alpha ,
+      length = 6
+    }
+}
+
+\newrobustcmd*\carbohydrate[2][]{%
+  \begingroup
+    \pgfqkeys{/cbhdr}{defaults,#1}%
+    \csuse{cbhdr@\cbhdr@length @\cbhdr@model @\cbhdr@constitution}{#2}%
+  \endgroup
+}
+
+% --------------------------------------------------------------------------
 
 \endinput
