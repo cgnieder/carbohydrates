@@ -1,0 +1,122 @@
+\documentclass[load-preamble+,scrartcl={DIV10}]{cnltx-doc}
+\usepackage[utf8]{inputenc}
+\usepackage{carbohydrates}
+
+\setcnltx{
+  package  = {carbohydrates} ,
+  authors  = Clemens Niederberger ,
+  email    = contact@mychemistry.eu ,
+  info     = {carbohydrate molecules with \pkg*{chemfig}} ,
+  url      = https://github.com/cgnieder/carbohydrates/ ,
+  abstract = {%
+    \carbohydrates\ offers macros for making exercise sheets when teaching
+    carbohydrate chemistry a lot less tedious.  It uses \pkg{chemfig} for
+    drawing the formulae.
+  } ,
+  add-cmds = {
+    allose ,
+    altrose ,
+    arabinose ,
+    carbohydrate ,
+    desoxyribose ,
+    erythrose ,
+    galactose ,
+    glucose ,
+    glycerinaldehyde ,
+    gulose ,
+    idose ,
+    lyxose ,
+    mannose ,
+    newaldose ,
+    ribose ,
+    setcarbohydrate ,
+    setcarbohydratedefaults ,
+    talose ,
+    threose ,
+    xylose
+  } ,
+  add-silent-cmds = {
+    D ,
+    chemfig ,
+    chemname ,
+    chemnameinit ,
+    definesubmol ,
+    iupac ,
+    setatomsep
+  }
+}
+
+\defbibheading{bibliography}[References]{\addsec{#1}}
+
+\usepackage{chemmacros}
+
+\newcommand{\bondwidth}{0.06642 em} % 'Line Width'
+\newcommand*{\bondboldwidth}{0.22832 em} %'Bold Width'
+\newcommand*{\bondhashlength}{0.25737 em} % 'Hash Spacing'
+\setdoublesep{0.35700 em}  % 'Bond Spacing'
+\setatomsep{1.78500 em}    % 'Fixed Length'
+\setbondoffset{0.18265 em} % 'Margin Width'
+\setbondstyle{line width = \bondwidth}
+\setcrambond
+  {\the\dimexpr \bondwidth * 2 + \bondboldwidth \relax}
+  {\bondwidth}{\bondhashlength}
+\renewcommand*\printatom[1]{{\small\ensuremath{\mathsf{#1}}}}
+
+\begin{document}
+
+\section{Licence and Requirements}
+\license
+
+\section{The Idea}
+When teaching chemistry -- and in the case of this package: carbohyddrate
+chemistry -- you have to show many examples of the basic aldoses and you have
+to explain the Fischer and the Haworth representation as well. This means you
+may have nearly the same \pkg{chemfig}~\cite{pkg:chemfig} formulae over and
+over in your documents.  \carbohydrates\ aims to ease this task.
+
+The following example will give a short impression of what the package does:
+\begin{example}
+  \glucose
+  \glucose[model={fischer=skeleton}]
+  \setatomsep{2.5em}
+  \glucose[model=haworth,ring]
+  \glucose[model=haworth,ring=furanose]
+\end{example}
+
+\section{The Basic Macro}
+\begin{commands}
+  \command{carbohydrate}[\oarg{options}\marg{spec}]
+    A generic macro for typesetting carbohydrates.
+\end{commands}
+We will talk about the options in a bit. First lets see what \meta{spec}
+means.  This argument is a series of the tokens \code{r}, \code{l} and
+\code{0} denoting an hydroxy group placed to the right or the left in the
+Fischer projection of the carbohydrate.  A \code{0} means thet the hydroxy
+group is to be left out.  The series of tokens is meant to describe the
+hydroxy groups at the chiral centers. The aldehyde group\footnote{Also the
+  keto group once ketoses will be implemented.} and the hydrohy group at the
+end of the molecule will be set automatically.  Unless specified otherwise the
+command expects a hexose which means a series of \emph{four} tokens.
+
+\begin{example}
+  \chemname{\carbohydrate{llrr}}{\iupac{\D-Mannose}}
+  \chemname{\carbohydrate[model={fischer=skeleton}]{llrr}}{\iupac{\D-Mannose}}
+  \setatomsep{2.5em}\chemnameinit{}
+  \chemname{\carbohydrate[model=chair]{llrr}}{\iupac{\D-Mannose}}
+  \chemname{\carbohydrate[model=haworth]{llrr}}{\iupac{\D-Mannose}}
+\end{example}
+
+Adding the option \option{pentose} means that now only \emph{three} tokens
+need to be specified.
+
+\begin{example}
+  \chemname{\carbohydrate[pentose]{rlr}}{\iupac{\D-Xylose}}
+  \chemname{\carbohydrate[pentose,model={fischer=skeleton}]{rlr}}{\iupac{\D-Xylose}}
+  \setatomsep{2.5em}\chemnameinit{}
+  \chemname{\carbohydrate[pentose,model=haworth,ring]{rlr}}{\iupac{\D-Xylose}}
+  \chemname{\carbohydrate[pentose,model=haworth,ring=pyranose]{rlr}}{\iupac{\D-Xylose}}
+\end{example}
+
+\section{Restrictions}
+
+\end{document}
