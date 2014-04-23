@@ -1,7 +1,7 @@
 % --------------------------------------------------------------------------
 % the CARBOHYDRATES package
 % 
-%   ready drawn carbohadrates with chemfig
+%   ready drawn carbohydrates with chemfig
 %
 % --------------------------------------------------------------------------
 % Clemens Niederberger
@@ -25,7 +25,7 @@
 % If you have any ideas, questions, suggestions or bugs to report, please
 % feel free to contact me.
 % --------------------------------------------------------------------------
-\def\cbhdr@date{2014/01/23}
+\def\cbhdr@date{2014/04/22}
 \def\cbhdr@version{v0.0}
 \def\cbhdr@info{carbohydrate molecules with chemfig}
 
@@ -97,7 +97,6 @@
   }
   \state{final}{}
 }
-
 
 \tikzset{
   cbhdr/wavy bond/.style =
@@ -235,220 +234,216 @@
   {(-[:0,.75,,1,cbhdr/wavy bond]\cbhdr@anomer@OH)}
 
 % ==========================================================================
+% commands to define the chain and ring molecules avoiding code duplication:
+
+% the arguments of a chain refer to r and l for the chiral centers. A hexose
+% needs four arguments: \cbhdr@newchain\hexose#1#2#3#4{<code>}
+
+% \cbhdr@newchain<macro><arguments>{<chemfig code>}
+
+\protected\def\cbhdr@newchain#1{\cbhdr@newchain@aux@i{#1}}
+\protected\def\cbhdr@newchain@aux@i#1#2#{\cbhdr@newchain@aux@ii{#1}{#2}}
+\protected\def\cbhdr@newchain@aux@ii#1#2#3{%
+  \protected\csdef{\cnltx@stripbs#1@aux}#2\q@stop{\cbhdr@chemfig@x{#3}}%
+  \newrobustcmd*#1[1]{\csuse{\cnltx@stripbs#1@aux}##1\q@stop}%
+}
+
+% the first argument of a ring always is alpha/beta, the following arguments
+% refer to r and l for the chiral centers. A hexose needs five arguments:
+% \cbhdr@newring\hexose#1#2#3#4#5{<code>}
+
+% \cbhdr@newring<macro><arguments>{<chemfig code>}
+
+\protected\def\cbhdr@newring#1{\cbhdr@newring@aux@i{#1}}
+\protected\def\cbhdr@newring@aux@i#1#2#{\cbhdr@newring@aux@ii{#1}{#2}}
+\protected\def\cbhdr@newring@aux@ii#1#2#3{%
+  \protected\csdef{\cnltx@stripbs#1@aux}#2\q@stop{\cbhdr@chemfig@x{#3}}%
+  \newrobustcmd*#1[1]{\csuse{\cnltx@stripbs#1@aux}{\cbhdr@anomer}##1\q@stop}%
+}
+
+% ==========================================================================
 % now let's build the molecules using the submolecules from above. They're
 % all named using the following naming scheme:
 %
 % \<module>@<model>@<chain>/<ring>(@<ringtype>)
 %
 % --------------------------------------------------------------------------
-% fischer
+% fischer - skeleton
 % hexoses
 % skeleton fomulae
 % chain
-\protected\def\cbhdr@aldohexose@fischer@skeleton@chain@aux#1#2#3#4\q@stop{%
-  \cbhdr@chemfig@x{
-    !{cbhdr@fischer@skeleton@aldehyde}
-    -[:-90]!{cbhdr@fischer@skeleton@C2@OH#1}
-    -[:-90]!{cbhdr@fischer@skeleton@C3@OH#2}
-    -[:-90]!{cbhdr@fischer@skeleton@C4@OH#3}
-    -[:-90]!{cbhdr@fischer@skeleton@C5@OH#4}
-    -[:-90](-[:0]OH)
-  }%
-}
-\newrobustcmd*\cbhdr@aldohexose@fischer@skeleton@chain[1]{%
-  \cbhdr@aldohexose@fischer@skeleton@chain@aux#1\q@stop
+
+\cbhdr@newchain\cbhdr@aldohexose@fischer@skeleton@chain#1#2#3#4{
+  !{cbhdr@fischer@skeleton@aldehyde}
+  -[:-90]!{cbhdr@fischer@skeleton@C2@OH#1}
+  -[:-90]!{cbhdr@fischer@skeleton@C3@OH#2}
+  -[:-90]!{cbhdr@fischer@skeleton@C4@OH#3}
+  -[:-90]!{cbhdr@fischer@skeleton@C5@OH#4}
+  -[:-90](-[:0]OH)
 }
 
 % pyranoses
-\protected\def\cbhdr@aldohexose@fischer@skeleton@ring@pyranose@aux#1#2#3#4#5\q@stop{%
-  \cbhdr@chemfig@x{
-    !{cbhdr@fischer@skeleton@OH#1}(-[:90]-[:0]-?)
-    -[:-90]!{cbhdr@fischer@skeleton@C2@OH#2}
-    -[:-90]!{cbhdr@fischer@skeleton@C3@OH#3}
-    -[:-90](-[:0]\cbhdr@ring@O-?)
-    -[:-90]!{cbhdr@fischer@skeleton@C5@OH#5}
-    -[:-90](-[:0]OH)
-  }%
-}
-\newrobustcmd*\cbhdr@aldohexose@fischer@skeleton@ring@pyranose[1]{%
-  \cbhdr@aldohexose@fischer@skeleton@ring@pyranose@aux{\cbhdr@anomer}#1\q@stop
+\cbhdr@newring\cbhdr@aldohexose@fischer@skeleton@ring@pyranose#1#2#3#4#5{%
+  !{cbhdr@fischer@skeleton@OH#1}(-[:90]-[:0]-?)
+  -[:-90]!{cbhdr@fischer@skeleton@C2@OH#2}
+  -[:-90]!{cbhdr@fischer@skeleton@C3@OH#3}
+  -[:-90]!{cbhdr@fischer@skeleton@C4@OH#4}
+  -[:-90](-[:0]\cbhdr@ring@O-?)
+  -[:-90](-[:0]OH)
 }
 
 % furanoses
-\protected\def\cbhdr@aldohexose@fischer@skeleton@ring@furanose@aux#1#2#3#4#5\q@stop{%
-  \cbhdr@chemfig@x{
-    !{cbhdr@fischer@skeleton@OH#1}(-[:90]-[:0]-?)
-    -[:-90]!{cbhdr@fischer@skeleton@C2@OH#2}
-    -[:-90]!{cbhdr@fischer@skeleton@C3@OH#3}
-    -[:-90]!{cbhdr@fischer@skeleton@C4@OH#4}
-    -[:-90](-[:0]\cbhdr@ring@O-?)
-    -[:-90](-[:0]OH)
-  }%
-}
-\newrobustcmd*\cbhdr@aldohexose@fischer@skeleton@ring@furanose[1]{%
-  \cbhdr@aldohexose@fischer@skeleton@ring@furanose@aux{\cbhdr@anomer}#1\q@stop
+\cbhdr@newring\cbhdr@aldohexose@fischer@skeleton@ring@furanose#1#2#3#4#5{%
+  !{cbhdr@fischer@skeleton@OH#1}(-[:90]-[:0]-?)
+  -[:-90]!{cbhdr@fischer@skeleton@C2@OH#2}
+  -[:-90]!{cbhdr@fischer@skeleton@C3@OH#3}
+  -[:-90](-[:0]\cbhdr@ring@O-?)
+  -[:-90]!{cbhdr@fischer@skeleton@C5@OH#5}
+  -[:-90](-[:0]OH)
 }
 
 % pentoses
 % chain
-\protected\def\cbhdr@aldopentose@fischer@skeleton@chain@aux#1#2#3\q@stop{%
-  \cbhdr@chemfig@x{
-    !{cbhdr@fischer@skeleton@aldehyde}
-    -[:-90]!{cbhdr@fischer@skeleton@C2@OH#1}
-    -[:-90]!{cbhdr@fischer@skeleton@C3@OH#2}
-    -[:-90]!{cbhdr@fischer@skeleton@C4@OH#3}
-    -[:-90](-[:0]OH)
-  }%
-}
-\newrobustcmd*\cbhdr@aldopentose@fischer@skeleton@chain[1]{%
-  \cbhdr@aldohexose@fischer@skeleton@chain@aux#1\q@stop
+\cbhdr@newchain\cbhdr@aldopentose@fischer@skeleton@chain#1#2#3{%
+  !{cbhdr@fischer@skeleton@aldehyde}
+  -[:-90]!{cbhdr@fischer@skeleton@C2@OH#1}
+  -[:-90]!{cbhdr@fischer@skeleton@C3@OH#2}
+  -[:-90]!{cbhdr@fischer@skeleton@C4@OH#3}
+  -[:-90](-[:0]OH)
 }
 
 % furanoses
-\protected\def\cbhdr@aldopentose@fischer@skeleton@ring@furanose@aux#1#2#3#4\q@stop{%
-  \cbhdr@chemfig@x{
-    !{cbhdr@fischer@skeleton@OH#1}(-[:90]-[:0]-?)
-    -[:-90]!{cbhdr@fischer@skeleton@C2@OH#2}
-    -[:-90]!{cbhdr@fischer@skeleton@C3@OH#3}
-    -[:-90](-[:0]\cbhdr@ring@O-?)
-    -[:-90](-[:0]OH)
-  }%
-}
-\newrobustcmd*\cbhdr@aldopentose@fischer@skeleton@ring@furanose[1]{%
-  \cbhdr@aldopentose@fischer@skeleton@ring@furanose@aux{\cbhdr@anomer}#1\q@stop
+\cbhdr@newring\cbhdr@aldopentose@fischer@skeleton@ring@furanose#1#2#3#4{%
+  !{cbhdr@fischer@skeleton@OH#1}(-[:90]-[:0]-?)
+  -[:-90]!{cbhdr@fischer@skeleton@C2@OH#2}
+  -[:-90]!{cbhdr@fischer@skeleton@C3@OH#3}
+  -[:-90](-[:0]\cbhdr@ring@O-?)
+  -[:-90](-[:0]OH)
 }
 
+% tetroses
+\cbhdr@newchain\cbhdr@aldotetrose@fischer@skeleton@chain#1#2{%
+  !{cbhdr@fischer@skeleton@aldehyde}
+  -[:-90]!{cbhdr@fischer@skeleton@C2@OH#1}
+  -[:-90]!{cbhdr@fischer@skeleton@C3@OH#2}
+  -[:-90](-[:0]OH)
+}
+
+% trioses
+\cbhdr@newchain\cbhdr@aldotriose@fischer@skeleton@chain#1{%
+  !{cbhdr@fischer@skeleton@aldehyde}
+  -[:-90]!{cbhdr@fischer@skeleton@C2@OH#1}
+  -[:-90](-[:0]OH)
+}
+
+
 % --------------------------------------------------------------------------
-% with C and H
+% fischer - with C and H
 % hexoses
 % chain
-\protected\def\cbhdr@aldohexose@fischer@chain@aux#1#2#3#4\q@stop{%
-  \cbhdr@chemfig@x{
-    C!{cbhdr@fischer@aldehyde}
-    -[:-90]C!{cbhdr@fischer@C2@OH#1}
-    -[:-90]C!{cbhdr@fischer@C3@OH#2}
-    -[:-90]C!{cbhdr@fischer@C4@OH#3}
-    -[:-90]C!{cbhdr@fischer@C5@OH#4}
-    -[:-90]C(-[:0]OH)(-[:180]H)
-    -[:-90]H
-  }%
-}
-\newrobustcmd*\cbhdr@aldohexose@fischer@chain[1]{%
-  \cbhdr@aldohexose@fischer@chain@aux#1\q@stop
+\cbhdr@newchain\cbhdr@aldohexose@fischer@chain#1#2#3#4{%
+  C!{cbhdr@fischer@aldehyde}
+  -[:-90]C!{cbhdr@fischer@C2@OH#1}
+  -[:-90]C!{cbhdr@fischer@C3@OH#2}
+  -[:-90]C!{cbhdr@fischer@C4@OH#3}
+  -[:-90]C!{cbhdr@fischer@C5@OH#4}
+  -[:-90]C(-[:0]OH)(-[:180]H)
+  -[:-90]H
 }
 
 % pyranoses
-\protected\def\cbhdr@aldohexose@fischer@ring@pyranose@aux#1#2#3#4#5\q@stop{%
-  \cbhdr@chemfig@x{
-    C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
-    -[:-90]C!{cbhdr@fischer@C2@OH#2}
-    -[:-90]C!{cbhdr@fischer@C3@OH#3}
-    -[:-90]C!{cbhdr@fischer@C4@OH#4}
-    -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
-    -[:-90]C(-[:0]OH)(-[:180]H)
-    -[:-90]H
-  }%
-}
-\newrobustcmd*\cbhdr@aldohexose@fischer@ring@pyranose[1]{%
-  \cbhdr@aldohexose@fischer@ring@pyranose@aux{\cbhdr@anomer}#1\q@stop
+\cbhdr@newring\cbhdr@aldohexose@fischer@ring@pyranose#1#2#3#4#5{%
+  C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
+  -[:-90]C!{cbhdr@fischer@C2@OH#2}
+  -[:-90]C!{cbhdr@fischer@C3@OH#3}
+  -[:-90]C!{cbhdr@fischer@C4@OH#4}
+  -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
+  -[:-90]C(-[:0]OH)(-[:180]H)
+  -[:-90]H
 }
 
 % furanoses
-\protected\def\cbhdr@aldohexose@fischer@ring@furanose@aux#1#2#3#4#5\q@stop{%
-  \cbhdr@chemfig@x{
-    C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
-    -[:-90]C!{cbhdr@fischer@C2@OH#2}
-    -[:-90]C!{cbhdr@fischer@C3@OH#3}
-    -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
-    -[:-90]C!{cbhdr@fischer@C5@OH#5}
-    -[:-90]C(-[:0]OH)(-[:180]H)
-    -[:-90]H
-  }%
-}
-\newrobustcmd*\cbhdr@aldohexose@fischer@ring@furanose[1]{%
-  \cbhdr@aldohexose@fischer@ring@furanose@aux{\cbhdr@anomer}#1\q@stop
+\cbhdr@newring\cbhdr@aldohexose@fischer@ring@furanose#1#2#3#4#5{%
+  C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
+  -[:-90]C!{cbhdr@fischer@C2@OH#2}
+  -[:-90]C!{cbhdr@fischer@C3@OH#3}
+  -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
+  -[:-90]C!{cbhdr@fischer@C5@OH#5}
+  -[:-90]C(-[:0]OH)(-[:180]H)
+  -[:-90]H
 }
 
 % pentoses
 % chain
-\protected\def\cbhdr@aldopentose@fischer@chain@aux#1#2#3\q@stop{%
-  \cbhdr@chemfig@x{
-    C!{cbhdr@fischer@aldehyde}
-    -[:-90]C!{cbhdr@fischer@C2@OH#1}
-    -[:-90]C!{cbhdr@fischer@C3@OH#2}
-    -[:-90]C!{cbhdr@fischer@C4@OH#3}
-    -[:-90]C(-[:0]OH)(-[:180]H)
-    -[:-90]H
-  }%
-}
-\newrobustcmd*\cbhdr@aldopentose@fischer@chain[1]{%
-  \cbhdr@aldopentose@fischer@chain@aux#1\q@stop
+\cbhdr@newchain\cbhdr@aldopentose@fischer@chain#1#2#3{%
+  C!{cbhdr@fischer@aldehyde}
+  -[:-90]C!{cbhdr@fischer@C2@OH#1}
+  -[:-90]C!{cbhdr@fischer@C3@OH#2}
+  -[:-90]C!{cbhdr@fischer@C4@OH#3}
+  -[:-90]C(-[:0]OH)(-[:180]H)
+  -[:-90]H
 }
 
 % furanoses
-\protected\def\cbhdr@aldopentose@fischer@ring@furanose@aux#1#2#3#4\q@stop{%
-  \cbhdr@chemfig@x{
-    C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
-    -[:-90]C!{cbhdr@fischer@C2@OH#2}
-    -[:-90]C!{cbhdr@fischer@C3@OH#3}
-    -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
-    -[:-90]C(-[:0]OH)(-[:180]H)
-    -[:-90]H
-  }%
+\cbhdr@newring\cbhdr@aldopentose@fischer@ring@furanose#1#2#3#4{%
+  C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
+  -[:-90]C!{cbhdr@fischer@C2@OH#2}
+  -[:-90]C!{cbhdr@fischer@C3@OH#3}
+  -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
+  -[:-90]C(-[:0]OH)(-[:180]H)
+  -[:-90]H
 }
-\newrobustcmd*\cbhdr@aldopentose@fischer@ring@furanose[1]{%
-  \cbhdr@aldopentose@fischer@ring@furanose@aux{\cbhdr@anomer}#1\q@stop
+
+% tetroses
+\cbhdr@newchain\cbhdr@aldotetrose@fischer@chain#1#2{%
+  C!{cbhdr@fischer@aldehyde}
+  -[:-90]C!{cbhdr@fischer@C2@OH#1}
+  -[:-90]C!{cbhdr@fischer@C3@OH#2}
+  -[:-90]C(-[:0]OH)(-[:180]H)
+  -[:-90]H
+}
+
+% trioses
+\cbhdr@newchain\cbhdr@aldotriose@fischer@chain#1{%
+  C!{cbhdr@fischer@aldehyde}
+  -[:-90]C!{cbhdr@fischer@C2@OH#1}
+  -[:-90]C(-[:0]OH)(-[:180]H)
+  -[:-90]H
 }
 
 % --------------------------------------------------------------------------
-% Haworth
+% haworth
 \newcommand*\cbhdr@decr{-} % >
 \newcommand*\cbhdr@thick{} % line width=3pt
 \newcommand*\cbhdr@incr{-} % <
 
 % hexoses
 % chain
-\protected\def\cbhdr@aldohexose@haworth@chain@aux#1#2#3#4\q@stop{%
-  \cbhdr@chemfig@x{
-    -[:30]
-    ?(-[:90,.5]-[:150,.5]HO)!{cbhdr@haworth@C5@OH#4}-[,,,,draw=none]
-    -[:-30,,1,,draw=none](=_[:0]\cbhdr@anomer@O)
-    \cbhdr@incr[:-150]!{cbhdr@haworth@C2@OH#1}
-    -[:-180,,,,\cbhdr@thick]!{cbhdr@haworth@C3@OH#2}
-    \cbhdr@decr[:150]?!{cbhdr@haworth@C4@OH#3}
-  }%
-}
-\newrobustcmd*\cbhdr@aldohexose@haworth@chain[1]{%
-  \cbhdr@aldohexose@haworth@chain@aux#1\q@stop
+\cbhdr@newchain\cbhdr@aldohexose@haworth@chain#1#2#3#4{%
+  -[:30]
+  ?(-[:90,.5]-[:150,.5]HO)!{cbhdr@haworth@C5@OH#4}-[,,,,draw=none]
+  -[:-30,,1,,draw=none](=_[:0]\cbhdr@anomer@O)
+  \cbhdr@incr[:-150]!{cbhdr@haworth@C2@OH#1}
+  -[:-180,,,,\cbhdr@thick]!{cbhdr@haworth@C3@OH#2}
+  \cbhdr@decr[:150]?!{cbhdr@haworth@C4@OH#3}
 }
 
 % pyranoses
-\protected\def\cbhdr@aldohexose@haworth@ring@pyranose@aux#1#2#3#4#5\q@stop{%
-  \cbhdr@chemfig@x{
-    -[:30]
-    ?(-[:90,.5]-[:150,.5]HO)-\cbhdr@ring@O
-    -[:-30]!{cbhdr@haworth@OH#1}
-    \cbhdr@incr[:-150]!{cbhdr@haworth@C2@OH#2}
-    -[:-180,,,,\cbhdr@thick]!{cbhdr@haworth@C3@OH#3}
-    \cbhdr@decr[:150]?!{cbhdr@haworth@C4@OH#4}
-  }%
-}
-
-\newrobustcmd*\cbhdr@aldohexose@haworth@ring@pyranose[1]{%
-  \cbhdr@aldohexose@haworth@ring@pyranose@aux{\cbhdr@anomer}#1\q@stop
+\cbhdr@newring\cbhdr@aldohexose@haworth@ring@pyranose#1#2#3#4#5{%
+  -[:30]
+  ?(-[:90,.5]-[:150,.5]HO)-\cbhdr@ring@O
+  -[:-30]!{cbhdr@haworth@OH#1}
+  \cbhdr@incr[:-150]!{cbhdr@haworth@C2@OH#2}
+  -[:-180,,,,\cbhdr@thick]!{cbhdr@haworth@C3@OH#3}
+  \cbhdr@decr[:150]?!{cbhdr@haworth@C4@OH#4}
 }
 
 % furanoses
-\protected\def\cbhdr@aldohexose@haworth@ring@furanose@aux#1#2#3#4#5\q@stop{%
-  \cbhdr@chemfig@x{
-    \cbhdr@ring@O?-[:-20]!{cbhdr@haworth@OH#1}
-    -[:-110]!{cbhdr@haworth@furanose@C2@OH#2}
-    -[:180,1.1954]!{cbhdr@haworth@furanose@C3@OH#3}
-    -[:110]?!{cbhdr@haworth@furanose@C4@OH#4@C5@OH#5}
-  }%
-}
-\newrobustcmd*\cbhdr@aldohexose@haworth@ring@furanose[1]{%
-  \cbhdr@aldohexose@haworth@ring@furanose@aux{\cbhdr@anomer}#1\q@stop
+\cbhdr@newring\cbhdr@aldohexose@haworth@ring@furanose#1#2#3#4#5{%
+  \cbhdr@ring@O?-[:-20]!{cbhdr@haworth@OH#1}
+  -[:-110]!{cbhdr@haworth@furanose@C2@OH#2}
+  -[:180,1.1954]!{cbhdr@haworth@furanose@C3@OH#3}
+  -[:110]?!{cbhdr@haworth@furanose@C4@OH#4@C5@OH#5}
 }
 
 % pentoses
@@ -459,34 +454,23 @@
 % chair
 % hexoses
 % chain
-\protected\def\cbhdr@aldohexose@chair@chain@aux#1#2#3#4\q@stop{%
-  \cbhdr@chemfig@x{
-    -[:-10]
-    ?(-[:150,.5]-[:90,.5,,1]OH)!{cbhdr@chair@C5@OH#4}-[:10,,,,draw=none]
-    -[:-50,,1,,draw=none](=_[:70]\cbhdr@anomer@O)
-    \cbhdr@incr[:-170]!{cbhdr@chair@C2@OH#1}
-    -[:-190,,,,\cbhdr@thick]!{cbhdr@chair@C3@OH#2}
-    \cbhdr@decr[:130]?!{cbhdr@chair@C4@OH#3}
-  }%
-}
-\newrobustcmd*\cbhdr@aldohexose@chair@chain[1]{%
-  \cbhdr@aldohexose@chair@chain@aux#1\q@stop
+\cbhdr@newchain\cbhdr@aldohexose@chair@chain#1#2#3#4{%
+  -[:-10]
+  ?(-[:150,.5]-[:90,.5,,1]OH)!{cbhdr@chair@C5@OH#4}-[:10,,,,draw=none]
+  -[:-50,,1,,draw=none](=_[:70]\cbhdr@anomer@O)
+  \cbhdr@incr[:-170]!{cbhdr@chair@C2@OH#1}
+  -[:-190,,,,\cbhdr@thick]!{cbhdr@chair@C3@OH#2}
+  \cbhdr@decr[:130]?!{cbhdr@chair@C4@OH#3}
 }
 
 % pyranoses
-\protected\def\cbhdr@aldohexose@chair@ring@pyranose@aux#1#2#3#4#5\q@stop{%
-  \cbhdr@chemfig@x{
-    -[:-10]
-    ?(-[:150,.5]-[:90,.5,,1]OH)-[:10]\cbhdr@ring@O
-    -[:-50]!{cbhdr@chair@OH#1}
-    \cbhdr@incr[:170]!{cbhdr@chair@C2@OH#2}
-    -[:190,,,,\cbhdr@thick]!{cbhdr@chair@C3@OH#3}
-    \cbhdr@decr[:130]?!{cbhdr@chair@C4@OH#4}
-  }%
-}
-
-\newrobustcmd*\cbhdr@aldohexose@chair@ring@pyranose[1]{%
-  \cbhdr@aldohexose@chair@ring@pyranose@aux{\cbhdr@anomer}#1\q@stop
+\cbhdr@newring\cbhdr@aldohexose@chair@ring@pyranose#1#2#3#4#5{%
+  -[:-10]
+  ?(-[:150,.5]-[:90,.5,,1]OH)-[:10]\cbhdr@ring@O
+  -[:-50]!{cbhdr@chair@OH#1}
+  \cbhdr@incr[:170]!{cbhdr@chair@C2@OH#2}
+  -[:190,,,,\cbhdr@thick]!{cbhdr@chair@C3@OH#3}
+  \cbhdr@decr[:130]?!{cbhdr@chair@C4@OH#4}
 }
 
 % furanoses
@@ -515,31 +499,45 @@
     model/.is choice ,
     model/fischer/.is choice ,
     model/fischer/skeleton/.code = \def\cbhdr@model{fischer@skeleton} ,
-    model/fischer/full/.code = \def\cbhdr@model{fischer} ,
-    model/fischer/.default = full ,
-    model/haworth/.code = \def\cbhdr@model{haworth} ,
-    model/chair/.code = \def\cbhdr@model{chair} ,
-    chain/.code = \def\cbhdr@constitution{chain} ,
+    model/fischer/full/.code     = \def\cbhdr@model{fischer} ,
+    model/fischer/.default       = full ,
+    model/haworth/.code          = \def\cbhdr@model{haworth} ,
+    model/chair/.code            = \def\cbhdr@model{chair} ,
+    chain/.code                  = \def\cbhdr@constitution{chain} ,
     ring/.is choice ,
-    ring/true/.code = \def\cbhdr@constitution{ring@\cbhdr@pyranose} ,
-    ring/pyranose/.code = \def\cbhdr@constitution{ring@\cbhdr@pyranose} ,
-    ring/furanose/.code = \def\cbhdr@constitution{ring@furanose} ,
-    ring/.default = true ,
+    ring/true/.code              = \def\cbhdr@constitution{ring@\cbhdr@pyranose} ,
+    ring/pyranose/.code          = \def\cbhdr@constitution{ring@\cbhdr@pyranose} ,
+    ring/furanose/.code          = \def\cbhdr@constitution{ring@furanose} ,
+    ring/.default                = true ,
     anomer/.is choice ,
-    anomer/alpha/.code = \def\cbhdr@anomer{alpha} ,
-    anomer/beta/.code = \def\cbhdr@anomer{beta} ,
-    anomer/undetermined/.code = \def\cbhdr@anomer{undetermined} ,
+    anomer/alpha/.code           = \def\cbhdr@anomer{alpha} ,
+    anomer/beta/.code            = \def\cbhdr@anomer{beta} ,
+    anomer/undetermined/.code    = \def\cbhdr@anomer{undetermined} ,
     length/.is choice ,
-    length/6/.code =
+    length/6/.code               =
       \def\cbhdr@pyranose{pyranose}
       \def\cbhdr@length{aldohexose} ,
-    length/5/.code =
+    length/5/.code               =
       \def\cbhdr@pyranose{furanose}
       \def\cbhdr@length{aldopentose} ,
-    length/4/.code = \def\cbhdr@length{aldotetrose} ,
-    length/3/.code = \def\cbhdr@length{aldotriose} ,
-    defaults/.style = {
-      model = fischer ,
+    length/4/.code               = \def\cbhdr@length{aldotetrose} ,
+    length/3/.code               = \def\cbhdr@length{aldotriose} ,
+    hexose/.style                = { length=6 } ,
+    pentose/.style               = { length=5 } ,
+    tetrose/.style               = { length=4 } ,
+    triose/.style                = { length=3 } ,
+    3d/.is choice ,
+    3d/true/.code                =
+      \def\cbhdr@decr{>}
+      \def\cbhdr@thick{line width=3pt}
+      \def\cbhdr@incr{<} ,
+    3d/false/.code               =
+      \def\cbhdr@decr{-}
+      \def\cbhdr@thick{}
+      \def\cbhdr@incr{-} ,
+    3d/.default                  = true ,
+    defaults/.style              = {
+      model  = fischer ,
       chain ,
       anomer = alpha ,
       length = 6
@@ -581,30 +579,30 @@
 % ==========================================================================
 % predefined carbohydrates:
 % aldohexoses:
-\newaldose \allose   [length=6]{rrrr}
-\newaldose \altrose  [length=6]{lrrr}
-\newaldose \glucose  [length=6]{rlrr}
-\newaldose \mannose  [length=6]{llrr}
-\newaldose \gulose   [length=6]{rrlr}
-\newaldose \idose    [length=6]{lrlr}
-\newaldose \galactose[length=6]{rllr}
-\newaldose \talose   [length=6]{lllr}
+\newaldose \allose   [hexose]{rrrr}
+\newaldose \altrose  [hexose]{lrrr}
+\newaldose \glucose  [hexose]{rlrr}
+\newaldose \mannose  [hexose]{llrr}
+\newaldose \gulose   [hexose]{rrlr}
+\newaldose \idose    [hexose]{lrlr}
+\newaldose \galactose[hexose]{rllr}
+\newaldose \talose   [hexose]{lllr}
 
 % for the time being those are only partially implemented:
 % aldopentoses:
-\newaldose \ribose   [length=5]{rrr}
-\newaldose \arabinose[length=5]{lrr}
-\newaldose \xylose   [length=5]{rlr}
-\newaldose \lyxose   [length=5]{llr}
+\newaldose \ribose   [pentose]{rrr}
+\newaldose \arabinose[pentose]{lrr}
+\newaldose \xylose   [pentose]{rlr}
+\newaldose \lyxose   [pentose]{llr}
 
-\newaldose \desoxyribose[length=5]{0rr}
+\newaldose \desoxyribose[pentose]{0rr}
 
 % aldotetroses:
-\newaldose \erythrose[length=4]{rr}
-\newaldose \threose  [length=4]{lr}
+\newaldose \erythrose[tetrose]{rr}
+\newaldose \threose  [tetrose]{lr}
 
 % aldotrioses:
-\newaldose \glycerinaldehyde[length=3]{r}
+\newaldose \glycerinaldehyde[triose]{r}
 
 % ==========================================================================
 % setup commands
@@ -638,4 +636,6 @@
 - Optionen für Farben
 
 - Ketosen - viell. nur Fructose
+
+- Optionen für oxidierte u reduzierte Formen?
 
