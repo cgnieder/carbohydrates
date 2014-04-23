@@ -50,6 +50,24 @@
 \cnltx@create@generic@message{cbhdr}{carbohydrates}{WarningNoLine}{}
 \cnltx@create@generic@message{cbhdr}{carbohydrates}{Info}{}
 
+\newcommand*\cbhdr@ring@error[2]{%
+  \cbhdr@error{#1 can't form #2 rings}%
+}
+
+\newcommand*\cbhdr@define@ring@error[3]{%
+  \protected\csdef{cbhdr@aldo#2@#1@ring@#3}{\cbhdr@ring@error{#2s}{#3}}%
+}
+
+\newcommand*\cbhdr@chair@error[1]{%
+  \cbhdr@error{The chair model is not implemented for #1}%
+}
+
+\newcommand*\cbhdr@define@chair@errors[1]{%
+  \protected\csdef{cbhdr@aldo#1@chair@chain}{\cbhdr@chair@error{#1s}}%
+  \protected\csdef{cbhdr@aldo#1@chair@ring@pyranose}{\cbhdr@chair@error{#1s}}%
+  \protected\csdef{cbhdr@aldo#1@chair@ring@furanose}{\cbhdr@chair@error{#1s}}%
+}
+
 % ==========================================================================
 % colors
 \colorlet{cbhdr@anomerO}{black}
@@ -187,28 +205,51 @@
 
 \cbhdr@definesubmol@x{cbhdr@haworth@furanose@C2@OHr}{(-[:-90,.5]\cbhdr@OH{2})}
 \cbhdr@definesubmol@x{cbhdr@haworth@furanose@C2@OHl}{(-[:90,.5,,2]\cbhdr@HO{2})}
+\cbhdr@definesubmol@x{cbhdr@haworth@furanose@C2@OH0}{}
+
 \cbhdr@definesubmol@x{cbhdr@haworth@furanose@C3@OHr}{(-[:-90,.5]\cbhdr@OH{3})}
 \cbhdr@definesubmol@x{cbhdr@haworth@furanose@C3@OHl}{(-[:90,.5]\cbhdr@OH{3})}
+\cbhdr@definesubmol@x{cbhdr@haworth@furanose@C3@OH0}{}
+
+% 4=r, 5=r
 \cbhdr@definesubmol@x{cbhdr@haworth@furanose@C4@OHr@C5@OHr}{(
   -[:90,.5](<[:30,.5]\cbhdr@OH{5})
   -[:120,.5]
-  -[:-180,.5]\cbhdr@HO{4}
+  -[:-180,.5]HO
 )}
+% 4=l, 5=r
 \cbhdr@definesubmol@x{cbhdr@haworth@furanose@C4@OHl@C5@OHr}{(
   -[:-90,.5](<:[:150,.5]\cbhdr@HO{5})
   -[:-120,.5]
-  -[:180,.5]\cbhdr@HO{4}
+  -[:180,.5]HO
 )}
+
+% 4=r, 5=l
 \cbhdr@definesubmol@x{cbhdr@haworth@furanose@C4@OHr@C5@OHl}{(
   -[:90,.5](<:[:30,.5]\cbhdr@OH{5})
   -[:120,.5]
-  -[:-180,.5]\cbhdr@HO{4}
+  -[:-180,.5]HO
 )}
+% 4=l, 5=l
 \cbhdr@definesubmol@x{cbhdr@haworth@furanose@C4@OHl@C5@OHl}{(
   -[:-90,.5](<[:150,.5]\cbhdr@HO{5})
   -[:-120,.5]
-  -[:180,.5]\cbhdr@HO{4}
+  -[:180,.5]HO
 )}
+
+% 4=r, 5=0
+\cbhdr@definesubmol@x{cbhdr@haworth@furanose@C4@OHr@C5@OH0}{(
+  -[:90,.5]
+  -[:120,.5]
+  -[:-180,.5]HO
+)}
+% 4=l, 5=0
+\cbhdr@definesubmol@x{cbhdr@haworth@furanose@C4@OHl@C5@OH0}{(
+  -[:-90,.5]
+  -[:-120,.5]
+  -[:180,.5]HO
+)}
+% 4=0 wouldn't make sense since then the furanose ring cannot be formed
 
 % fischer
 \cbhdr@definesubmol@x{cbhdr@fischer@skeleton@aldehyde}{(=_[:30]\cbhdr@anomer@O)}
@@ -312,6 +353,15 @@
   -[:-90](-[:0]OH)
 }
 
+% pyranoses
+\cbhdr@newring\cbhdr@aldopentose@fischer@skeleton@ring@pyranose#1#2#3#4{%
+  !{cbhdr@fischer@skeleton@OH#1}(-[:90]-[:0]-?)
+  -[:-90]!{cbhdr@fischer@skeleton@C2@OH#2}
+  -[:-90]!{cbhdr@fischer@skeleton@C3@OH#3}
+  -[:-90]!{cbhdr@fischer@skeleton@C4@OH#4}
+  -[:-90](-[:0]\cbhdr@ring@O-?)
+}
+
 % furanoses
 \cbhdr@newring\cbhdr@aldopentose@fischer@skeleton@ring@furanose#1#2#3#4{%
   !{cbhdr@fischer@skeleton@OH#1}(-[:90]-[:0]-?)
@@ -322,6 +372,7 @@
 }
 
 % tetroses
+% chain
 \cbhdr@newchain\cbhdr@aldotetrose@fischer@skeleton@chain#1#2{%
   !{cbhdr@fischer@skeleton@aldehyde}
   -[:-90]!{cbhdr@fischer@skeleton@C2@OH#1}
@@ -329,13 +380,30 @@
   -[:-90](-[:0]OH)
 }
 
+% pyranoses
+\cbhdr@define@ring@error{fischer@skeleton}{tetrose}{pyranose}
+
+% furanoses
+\cbhdr@newring\cbhdr@aldotetrose@fischer@skeleton@ring@furanose#1#2#3{%
+  !{cbhdr@fischer@skeleton@OH#1}(-[:90]-[:0]-?)
+  -[:-90]!{cbhdr@fischer@skeleton@C2@OH#2}
+  -[:-90]!{cbhdr@fischer@skeleton@C3@OH#3}
+  -[:-90](-[:0]\cbhdr@ring@O-?)
+}
+
 % trioses
+% chain
 \cbhdr@newchain\cbhdr@aldotriose@fischer@skeleton@chain#1{%
   !{cbhdr@fischer@skeleton@aldehyde}
   -[:-90]!{cbhdr@fischer@skeleton@C2@OH#1}
   -[:-90](-[:0]OH)
 }
 
+% pyranoses
+\cbhdr@define@ring@error{fischer@skeleton}{triose}{pyranose}
+
+% furanoses
+\cbhdr@define@ring@error{fischer@skeleton}{triose}{furanose}
 
 % --------------------------------------------------------------------------
 % fischer - with C and H
@@ -384,6 +452,16 @@
   -[:-90]H
 }
 
+% pyranoses
+\cbhdr@newring\cbhdr@aldopentose@fischer@ring@pyranose#1#2#3#4{%
+  C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
+  -[:-90]C!{cbhdr@fischer@C2@OH#2}
+  -[:-90]C!{cbhdr@fischer@C3@OH#3}
+  -[:-90]C!{cbhdr@fischer@C4@OH#4}
+  -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
+  -[:-90]H
+}
+
 % furanoses
 \cbhdr@newring\cbhdr@aldopentose@fischer@ring@furanose#1#2#3#4{%
   C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
@@ -395,6 +473,7 @@
 }
 
 % tetroses
+% chain
 \cbhdr@newchain\cbhdr@aldotetrose@fischer@chain#1#2{%
   C!{cbhdr@fischer@aldehyde}
   -[:-90]C!{cbhdr@fischer@C2@OH#1}
@@ -403,13 +482,32 @@
   -[:-90]H
 }
 
+% pyranoses
+\cbhdr@define@ring@error{fischer}{tetrose}{pyranose}
+
+% furanoses
+\cbhdr@newring\cbhdr@aldotetrose@fischer@ring@furanose#1#2#3{%
+  C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
+  -[:-90]C!{cbhdr@fischer@C2@OH#2}
+  -[:-90]C!{cbhdr@fischer@C3@OH#3}
+  -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
+  -[:-90]H
+}
+
 % trioses
+% chain
 \cbhdr@newchain\cbhdr@aldotriose@fischer@chain#1{%
   C!{cbhdr@fischer@aldehyde}
   -[:-90]C!{cbhdr@fischer@C2@OH#1}
   -[:-90]C(-[:0]OH)(-[:180]H)
   -[:-90]H
 }
+
+% pyranoses
+\cbhdr@define@ring@error{fischer}{triose}{pyranose}
+
+% furanoses
+\cbhdr@define@ring@error{fischer}{triose}{furanose}
 
 % --------------------------------------------------------------------------
 % haworth
@@ -448,7 +546,46 @@
 
 % pentoses
 % chain
+% pyranoses
+\cbhdr@newring\cbhdr@aldopentose@haworth@ring@pyranose#1#2#3#4{%
+  -[:30]
+  ?-\cbhdr@ring@O
+  -[:-30]!{cbhdr@haworth@OH#1}
+  \cbhdr@incr[:-150]!{cbhdr@haworth@C2@OH#2}
+  -[:-180,,,,\cbhdr@thick]!{cbhdr@haworth@C3@OH#3}
+  \cbhdr@decr[:150]?!{cbhdr@haworth@C4@OH#4}
+}
+
 % furanoses
+\cbhdr@newring\cbhdr@aldopentose@haworth@ring@furanose#1#2#3#4{%
+  \cbhdr@ring@O?-[:-20]!{cbhdr@haworth@OH#1}
+  -[:-110]!{cbhdr@haworth@furanose@C2@OH#2}
+  -[:180,1.1954]!{cbhdr@haworth@furanose@C3@OH#3}
+  -[:110]?(-[:90,.5]-[:150,.5]HO)
+}
+
+% tetroses
+% chain
+
+% pyranoses
+\cbhdr@define@ring@error{haworth}{tetrose}{pyranose}
+
+% furanoses
+\cbhdr@newring\cbhdr@aldotetrose@haworth@ring@furanose#1#2#3{%
+  \cbhdr@ring@O?-[:-20]!{cbhdr@haworth@OH#1}
+  -[:-110]!{cbhdr@haworth@furanose@C2@OH#2}
+  -[:180,1.1954]!{cbhdr@haworth@furanose@C3@OH#3}
+  -[:110]?
+}
+
+% trioses
+% chain
+
+% pyranoses
+\cbhdr@define@ring@error{haworth}{triose}{pyranose}
+
+% furanoses
+\cbhdr@define@ring@error{haworth}{triose}{furanose}
 
 % --------------------------------------------------------------------------
 % chair
@@ -474,9 +611,19 @@
 }
 
 % furanoses
+\newrobustcmd*\cbhdr@aldohexose@chair@ring@furanose{%
+  \cbhdr@chair@error{furanose rings}%
+}
+
 % pentoses
-% chain
-% furanoses
+\cbhdr@define@chair@errors{pentose}
+
+% tetroses
+\cbhdr@define@chair@errors{tetrose}
+
+% trioses
+\cbhdr@define@chair@errors{triose}
+
 
 % ==========================================================================
 % the user commands - built from the commands above using the already
@@ -490,7 +637,7 @@
 \newcommand*\cbhdr@chain{chain}
 \newcommand*\cbhdr@ring{ring@\cbhdr@ringtype}
 \newcommand*\cbhdr@ringtype{} % pyranose/furanose
-\newcommand*\cbhdr@pyranose{pyranose}
+\newcommand*\cbhdr@ringtype@default{}
 
 % --------------------------------------------------------------------------
 % options for the user command:
@@ -505,8 +652,8 @@
     model/chair/.code            = \def\cbhdr@model{chair} ,
     chain/.code                  = \def\cbhdr@constitution{chain} ,
     ring/.is choice ,
-    ring/true/.code              = \def\cbhdr@constitution{ring@\cbhdr@pyranose} ,
-    ring/pyranose/.code          = \def\cbhdr@constitution{ring@\cbhdr@pyranose} ,
+    ring/true/.code              = \def\cbhdr@constitution{ring@\cbhdr@ringtype@default} ,
+    ring/pyranose/.code          = \def\cbhdr@constitution{ring@pyranose} ,
     ring/furanose/.code          = \def\cbhdr@constitution{ring@furanose} ,
     ring/.default                = true ,
     anomer/.is choice ,
@@ -515,13 +662,18 @@
     anomer/undetermined/.code    = \def\cbhdr@anomer{undetermined} ,
     length/.is choice ,
     length/6/.code               =
-      \def\cbhdr@pyranose{pyranose}
+      \def\cbhdr@ringtype@default{pyranose}
       \def\cbhdr@length{aldohexose} ,
     length/5/.code               =
-      \def\cbhdr@pyranose{furanose}
+      \def\cbhdr@ringtype@default{furanose}
       \def\cbhdr@length{aldopentose} ,
-    length/4/.code               = \def\cbhdr@length{aldotetrose} ,
-    length/3/.code               = \def\cbhdr@length{aldotriose} ,
+    length/4/.code               =
+      \def\cbhdr@ringtype@default{furanose}
+      \def\cbhdr@length{aldotetrose} ,
+    length/3/.code               =
+      % doesn't matter: will cause an error anyway
+      \def\cbhdr@ringtype@default{pyranose}
+      \def\cbhdr@length{aldotriose} ,
     hexose/.style                = { length=6 } ,
     pentose/.style               = { length=5 } ,
     tetrose/.style               = { length=4 } ,
