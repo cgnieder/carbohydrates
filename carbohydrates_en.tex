@@ -14,65 +14,76 @@
     drawing the formulae.
   } ,
   add-cmds = {
-    allose ,
-    altrose ,
-    arabinose ,
+    allose , altrose , arabinose ,
     carbohydrate ,
     desoxyribose ,
     erythrose ,
-    galactose ,
-    glucose ,
-    glycerinaldehyde ,
-    gulose ,
+    galactose , glucose , glycerinaldehyde , gulose ,
     idose ,
     lyxose ,
     mannose ,
     newaldose ,
     ribose ,
-    setcarbohydrate ,
-    setcarbohydratedefaults ,
-    talose ,
-    threose ,
+    setcarbohydrate , setcarbohydratedefaults ,
+    talose , threose ,
     xylose
   } ,
   add-silent-cmds = {
+    bondboldwidth , bondhashlength , bondwidth ,
     D ,
-    chemfig ,
-    chemname ,
-    chemnameinit ,
+    chemfig , chemname , chemnameinit ,
     definesubmol ,
     iupac ,
-    setatomsep
+    printatom ,
+    setatomsep , setbondoffset , setbondstyle , setcrambond , setdoublesep ,
   }
 }
 
 \defbibheading{bibliography}[References]{\addsec{#1}}
+\addbibresource{\jobname.bib}
+
+\usepackage{filecontents}
+\begin{filecontents*}{\jobname.bib}
+@online{texdev,
+  url = {http://www.texdev.net/} ,
+  urldate = {2014-04-25} ,
+  author = {Joseph Wright}
+}
+\end{filecontents*}
 
 \usepackage{chemmacros}
 
-\newcommand{\bondwidth}{0.06642 em} % 'Line Width'
-\newcommand*{\bondboldwidth}{0.22832 em} %'Bold Width'
-\newcommand*{\bondhashlength}{0.25737 em} % 'Hash Spacing'
-\setdoublesep{0.35700 em}  % 'Bond Spacing'
-\setatomsep{1.78500 em}    % 'Fixed Length'
-\setbondoffset{0.18265 em} % 'Margin Width'
+\newcommand*{\bondwidth}{0.06642 em}
+\newcommand*{\bondboldwidth}{0.22832 em}
+\newcommand*{\bondhashlength}{0.25737 em}
+\setdoublesep{0.35700 em}
+\setatomsep{1.78500 em}
+\setbondoffset{0.18265 em}
 \setbondstyle{line width = \bondwidth}
 \setcrambond
   {\the\dimexpr \bondwidth * 2 + \bondboldwidth \relax}
   {\bondwidth}{\bondhashlength}
 \renewcommand*\printatom[1]{{\small\ensuremath{\mathsf{#1}}}}
 
+\usepackage{rotating,array,tabu,booktabs}
+
+\defabbr\vs{\cnltxlatin{vs}}
+
 \begin{document}
 
 \section{Licence and Requirements}
 \license
 
+\carbohydrates\ loads the packages \pkg{chemfig}~\cite{pkg:chemfig} and
+\pkg*{cnltx-base}, the programming package fom the \bnd{cnltx}
+bundle~\cite{bnd:cnltx}.
+
 \section{The Idea}
-When teaching chemistry -- and in the case of this package: carbohyddrate
+When teaching chemistry -- and in the case of this package: carbohydrate
 chemistry -- you have to show many examples of the basic aldoses and you have
 to explain the Fischer and the Haworth representation as well. This means you
-may have nearly the same \pkg{chemfig}~\cite{pkg:chemfig} formulae over and
-over in your documents.  \carbohydrates\ aims to ease this task.
+may have nearly the same \pkg{chemfig} formulae over and over in your
+documents.  \carbohydrates\ aims to ease this task.
 
 The following example will give a short impression of what the package does:
 \begin{example}
@@ -83,7 +94,8 @@ The following example will give a short impression of what the package does:
   \glucose[model=haworth,ring=furanose]
 \end{example}
 
-\section{The Basic Macro}
+\section{Usage}
+\subsection{The Base Macro}
 \begin{commands}
   \command{carbohydrate}[\oarg{options}\marg{spec}]
     A generic macro for typesetting carbohydrates.
@@ -117,6 +129,186 @@ need to be specified.
   \chemname{\carbohydrate[pentose,model=haworth,ring=pyranose]{rlr}}{\iupac{\D-Xylose}}
 \end{example}
 
-\section{Restrictions}
+\subsection{Available Options}
+As you have already seen in the pevious examples \cs{carbohydrate} has an
+optional argument that takes different options.  Here is a complete list:
+\begin{options}
+  % model/fischer/skeleton/.code = \def\cbhdr@model{fischer@skeleton} ,
+  % model/fischer/full/.code     = \def\cbhdr@model{fischer} ,
+  \keychoice{model}{fischer,haworth,chair}\Default{fischer}
+    The model to be used to draw the molecule.  The choice \option{fischer}
+    is itself an option with two choices: \keyis{fischer}{skeleton} and
+    \keyis{fischer}{full}.  Leaving the choice out will use \code{full} as
+    default choice.
+  \opt{chain}
+    Draw the open chain isomer.
+  \keychoice{ring}{\default{true},pyranose,furanose}
+    Draw a ring isomer.  If you don't specify what ring type should be draw
+    (\ie, if you choose \code{true}) the default depends on the length of the
+    carbohydrate.  Ror example for hexoses the default ring type is
+    \code{pyranose}.
+  \keychoice{anomer}{alpha,beta,undetermined}\Default{alpha}
+    The ring anomer.
+  \keychoice{length}{6,5,4,3}\Default{6}
+    The length of the carbohydrate.  \keyis{length}{6} draws a hexose,
+    \keyis{length}{3} draws a triose.
+  \opt{hexose}
+    An alias for \keyis{length}{6}.
+  \opt{pentose}
+    An alias for \keyis{length}{5}.
+  \opt{tetrose}
+   An alias for \keyis{length}{4}.
+  \opt{triose}
+    An alias for \keyis{length}{3}.
+  \keybool{3d}\Default{false}
+    Draw some of the bonds of the rings in the \code{haworth} and \code{chair}
+    in a way that indicates the three dimensional structure of the molecules.
+\end{options}
+
+\subsection{Defining Shortcuts}\label{sec:defining-shortcuts}
+
+\carbohydrates\ allows to define shortcuts for aldoses:
+
+\begin{commands}
+  \command{newaldose}[\marg{cs}\oarg{options}\marg{spec}]
+    This defines the macro \meta{cs} with preset options \meta{options}.
+    \meta{spec} has the same meaning as for \cs{carbohydrate}.
+  \command{renewaldose}[\marg{cs}\oarg{options}\marg{spec}]
+    The same command but redefines an existing macro.
+\end{commands}
+
+In fact, \carbohydrates\ already defines macros for the common aldoses.  They
+are listed in table~\ref{tab:predefined-aldoses} on
+page~\pageref{tab:predefined-aldoses}.  They don't have any predefined options
+(except for \option{hexose}, \option{pentose} \etc).
+
+\begin{sidewaystable}
+  \setcarbohydrate{model={fischer=skeleton}}
+  \caption{Overview over the predefined aldoses.}
+  \label{tab:predefined-aldoses}
+  \begin{tabu}{*{8}{X[c]<{\strut}}}
+    \toprule
+      \allose & \altrose & \glucose   & \mannose &
+      \gulose & \idose   & \galactose & \talose \\
+      \cs{allose} & \cs{altrose} & \cs{glucose}   & \cs{mannose} &
+      \cs{gulose} & \cs{idose}   & \cs{galactose} & \cs{talose} \\
+      \iupac{\D\-Allose}    & \iupac{\D\-Altrose} &
+      \iupac{\D\-Glucose}   & \iupac{\D\-Mannose} &
+      \iupac{\D\-Gulose}    & \iupac{\D\-Idose} &
+      \iupac{\D\-Galactose} & \iupac{\D\-Talose} \\
+    \midrule
+      \ribose & \arabinose & \xylose & \lyxose & \desoxyribose \\
+      \cs{ribose} & \cs{arabinose} & \cs{xylose} & \cs{lyxose} &
+      \multicolumn{2}{l}{\cs{desoxyribose}} \\
+      \iupac{\D\-Ribose} & \iupac{\D\-Arabinose} &
+      \iupac{\D\-Xylose} & \iupac{\D\-Lyxose} &
+      \iupac{\D\-Desoxy\|ribose} \\
+    \midrule
+      \erythrose & \threose & \glycerinaldehyde \\
+      \cs{erythrose} & \cs{threose} & \multicolumn{2}{l}{\cs{glycerinaldehyde}} \\
+      \iupac{\D\-Erythrose} & \iupac{\D\-Threose} &
+      \iupac{\D\-Glycerin\|aldehyde} \\
+    \bottomrule
+  \end{tabu}
+\end{sidewaystable}
+
+\subsection{Available Models}\label{sec:available-models}
+
+\carbohydrates\ implements different models how to draw carbohydrates:
+\begin{itemize}
+  \item Fischer -- skeleton: the Fischer representation with only a skeleton
+    formula.
+  \item Fischer -- full: the Fischer representation including all C and H
+    atoms.
+  \item Haworth: the Haworth representation.
+  \item Chair: the chair conformation.
+\end{itemize}
+
+While the Fischer model is implemented for all carbohydrates both Haworth and
+chair are not.  The chair model is only implemented for aldohexoses, Haworth
+is implemented for aldotetroses, -pentoses and -hexoses.
+
+\begin{example}
+  \glucose[model={fischer=skeleton}]
+  \glucose[model={fischer=full}]
+  \setatomsep{2.5em}
+  \glucose[model=haworth]
+  \glucose[model=chair]
+\end{example}
+
+\subsection{Chain \vs\ Ring Forms}
+
+While the chain forms are available in all models the ring forms obviously
+aren't.  There are two ring forms for hexoses and pentoses: pyranoses and
+furanoses.  For tetroses only the furanose rings are available as there don't
+exist pyranose ring forms (for obvious reasons).  It is also clear that
+neither pyranose nor furanose forms of trioses exist.
+
+\begin{example}
+  \setatomsep{2.5em}
+  \glucose[model=haworth,ring]
+  \ribose[model=haworth,ring]
+  \threose[model=haworth,ring]
+\end{example}
+
+Actually the above is not true: the chain forms are not available in all
+models for all aldoses.  As said in section~\ref{sec:available-models} the
+chair model is only implemented for aldohexoses.  Also for chains are not
+implemented for tetroses and trioses in the Haworth model.
+
+\subsection{Default Settings}
+\begin{commands}
+  \command{setcarbohydrate}[\marg{options}]
+    Set package options for all carbohydrates within the current scope.
+  \command{setcarbohydratedefaults}[\marg{csname}\marg{options}]
+    Set options for a predefined carbohydrate within the current scope. The
+    first argument \meta{csname} is the macro name of the shortcut (see
+    section~\ref{sec:defining-shortcuts}) \emph{without} leading backslash.
+\end{commands}
+
+\begin{example}
+  \setatomsep{2.5em}
+  \setcarbohydratedefaults{glucose}{ring,model=haworth,anomer=undetermined}
+  \glucose\
+  \mannose
+\end{example}
+
+
+\section{Restrictions and TODOs}
+\subsection{TODOs}
+
+There are still a number of missing features that I plan to implement
+someday such as:
+\begin{itemize}
+  \item ring forms for \laevus-carbohydrates,
+  \item support for ketoses and
+  \item support for oxidized and reduzed forms.
+\end{itemize}
+
+\section{About the Examples}
+All macros used in the examples either belong to \carbohydrates\ and are
+described in this manual or they belong to either \pkg{chemfig} or
+\bnd{chemmacros}~\cite{bnd:chemmacros}\footnote{That is if they're not
+  standard \LaTeX\ macros.}.  I encourage you to take a look at those packages
+if you don't know them already.
+
+The \pkg{chemfig} settings have been adjusted for the examples in this
+manual.  Specifically the preamble of this document makes these settings:
+
+\begin{sourcecode}
+  \newcommand*{\bondwidth}{0.06642 em}
+  \newcommand*{\bondboldwidth}{0.22832 em}
+  \newcommand*{\bondhashlength}{0.25737 em}
+  \setdoublesep{0.35700 em}
+  \setatomsep{1.78500 em}
+  \setbondoffset{0.18265 em}
+  \setbondstyle{line width = \bondwidth}
+  \setcrambond
+    {\the\dimexpr \bondwidth * 2 + \bondboldwidth \relax}
+    {\bondwidth}{\bondhashlength}
+  \renewcommand*\printatom[1]{{\small\ensuremath{\mathsf{#1}}}}
+\end{sourcecode}
+These settings are taken from~\cite{texdev}.  Search the page for
+\code{chemfig} and you should be able to find them there.
 
 \end{document}
