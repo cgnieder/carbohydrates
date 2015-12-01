@@ -1,21 +1,39 @@
 \documentclass{scrartcl}
 \usepackage{carbohydrates}
+% \setcarbohydrates{
+%   color={anomerO}{red} ,
+%   color={anomerH}{blue} ,
+%   color={ringO}{green} ,
+%   color={C2}{yellow} ,
+%   color={O-C2}{yellow} ,
+%   color={H-C2}{yellow} ,
+%   color={C5}{purple} ,
+%   color={O-C5}{purple} ,
+%   color={H-C5}{purple} ,
+%   color={C6}{orange} ,
+%   color={O-C6}{orange} ,
+%   color={H-C6}{orange}
+% }
+
 \begin{document}
 
-\glucose[model=haworth,chain]\quad
-\glucose[model=fischer,chain]\quad
-\glucose[model=chair,ring]
+\setcarbohydrates{model=chair}
+\schemestart
+  \glucose[color={anomerO}{red},color={O-C5}{green},color={H-C5}{blue}]
+  \arrow{<=>}
+  \glucose[ring,color={anomerO}{red},color={ringO}{green},color={anomerH}{blue}]
+\schemestop
 
 \end{document}
 
 \documentclass{scrartcl}
 
 \usepackage{carbohydrates}
-% \colorlet{cbhdr@anomerO}{green}
-% \colorlet{anomerH}{blue}
-% \colorlet{cbhdr@ringO}{red}
-% \colorlet{cbhdr@O-C5}{red}
-% \colorlet{cbhdr@H-C5}{blue}
+\colorlet{cbhdr@anomerO}{green}
+\colorlet{anomerH}{blue}
+\colorlet{cbhdr@ringO}{red}
+\colorlet{cbhdr@O-C5}{orange}
+\colorlet{cbhdr@H-C5}{yellow}
 
 \begin{document}
 

@@ -1,4 +1,8 @@
-\documentclass[load-preamble+,scrartcl={DIV10}]{cnltx-doc}
+% arara: pdflatex
+% arara: biber
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[load-preamble+]{cnltx-doc}
 \usepackage[utf8]{inputenc}
 \usepackage{carbohydrates}
 
@@ -11,7 +15,7 @@
   abstract = {%
     \carbohydrates\ offers macros for making exercise sheets when teaching
     carbohydrate chemistry a lot less tedious.  It uses \pkg{chemfig} for
-    drawing the formulae.
+    drawing the formulas.
   } ,
   add-cmds = {
     allose , altrose , arabinose ,
@@ -24,19 +28,23 @@
     mannose ,
     newaldose ,
     ribose ,
-    setcarbohydrate , setcarbohydratedefaults ,
+    setcarbohydrates , setcarbohydratedefaults ,
     talose , threose ,
     xylose
   } ,
   add-silent-cmds = {
+    arrow ,
     bondboldwidth , bondhashlength , bondwidth ,
     D ,
     chemfig , chemname , chemnameinit ,
     definesubmol ,
     iupac ,
     printatom ,
-    setatomsep , setbondoffset , setbondstyle , setcrambond , setdoublesep ,
-  }
+    schemestart , schemestop , setatomsep , setbondoffset , setbondstyle ,
+      setcrambond , setdoublesep
+  } ,
+  index-setup = { othercode = \footnotesize , level = \addsec } ,
+  makeindex-setup = { columns = 3 , columnsep = 1em }
 }
 
 \defbibheading{bibliography}[References]{\addsec{#1}}
@@ -51,8 +59,10 @@
 }
 \end{filecontents*}
 
-\usepackage{chemmacros}
+\usepackage{varioref}
 
+\usepackage{chemmacros}
+\chemsetup{greek=newtx}
 \newcommand*{\bondwidth}{0.06642 em}
 \newcommand*{\bondboldwidth}{0.22832 em}
 \newcommand*{\bondhashlength}{0.25737 em}
@@ -61,8 +71,9 @@
 \setbondoffset{0.18265 em}
 \setbondstyle{line width = \bondwidth}
 \setcrambond
-  {\the\dimexpr \bondwidth * 2 + \bondboldwidth \relax}
-  {\bondwidth}{\bondhashlength}
+  {\dimexpr\bondwidth*2 + \bondboldwidth\relax}
+  {\bondwidth}
+  {\bondhashlength}
 \renewcommand*\printatom[1]{{\small\ensuremath{\mathsf{#1}}}}
 
 \usepackage{rotating,array,tabu,booktabs}
@@ -74,16 +85,15 @@
 \section{Licence and Requirements}
 \license
 
-\carbohydrates\ loads the packages \pkg{chemfig}~\cite{pkg:chemfig} and
-\pkg*{cnltx-base}, the programming package fom the \bnd{cnltx}
-bundle~\cite{bnd:cnltx}.
+\carbohydrates\ loads the packages \pkg{chemfig}~\cite{pkg:chemfig},
+\pkg{etoolbox}~\cite{pkg:etoolbox} and \pkg{xcolor}~\cite{pkg:xcolor}.
 
 \section{The Idea}
 When teaching chemistry -- and in the case of this package: carbohydrate
 chemistry -- you have to show many examples of the basic aldoses and you have
 to explain the Fischer and the Haworth representation as well. This means you
-may have nearly the same \pkg{chemfig} formulae over and over in your
-documents.  \carbohydrates\ aims to ease this task.
+may have nearly the same \pkg{chemfig}~\cite{pkg:chemfig} formulas over and
+over in your documents.  \carbohydrates\ aims to ease this task.
 
 The following example will give a short impression of what the package does:
 \begin{example}
@@ -103,11 +113,11 @@ The following example will give a short impression of what the package does:
 We will talk about the options in a bit. First lets see what \meta{spec}
 means.  This argument is a series of the tokens \code{r}, \code{l} and
 \code{0} denoting an hydroxy group placed to the right or the left in the
-Fischer projection of the carbohydrate.  A \code{0} means thet the hydroxy
+Fischer projection of the carbohydrate.  A \code{0} means that the hydroxy
 group is to be left out.  The series of tokens is meant to describe the
 hydroxy groups at the chiral centers. The aldehyde group\footnote{Also the
-  keto group once ketoses will be implemented.} and the hydrohy group at the
-end of the molecule will be set automatically.  Unless specified otherwise the
+  keto group once ketoses will be implemented.} and the hydroxy group at the
+end of the chain will be set automatically.  Unless specified otherwise the
 command expects a hexose which means a series of \emph{four} tokens.
 
 \begin{example}
@@ -143,9 +153,9 @@ optional argument that takes different options.  Here is a complete list:
   \opt{chain}
     Draw the open chain isomer.
   \keychoice{ring}{\default{true},pyranose,furanose}
-    Draw a ring isomer.  If you don't specify what ring type should be draw
+    Draw a ring isomer.  If you don't specify what ring type should be drawn
     (\ie, if you choose \code{true}) the default depends on the length of the
-    carbohydrate.  Ror example for hexoses the default ring type is
+    carbohydrate.  For example for hexoses the default ring type is
     \code{pyranose}.
   \keychoice{anomer}{alpha,beta,undetermined}\Default{alpha}
     The ring anomer.
@@ -162,8 +172,43 @@ optional argument that takes different options.  Here is a complete list:
     An alias for \keyis{length}{3}.
   \keybool{3d}\Default{false}
     Draw some of the bonds of the rings in the \code{haworth} and \code{chair}
-    in a way that indicates the three dimensional structure of the molecules.
+    models in a way that indicates the three dimensional structure of the
+    molecules.
+  \keylit-{color}{\marg{name}\marg{color}}
+    This option takes two arguments: \meta{name} specifies which part of the
+    molecule is to be colored, \meta{color} specifies the color to be used,
+    also see table~\vref{tab:color} and section~\ref{sec:colors}.
 \end{options}
+
+\begin{table}[htb]
+  \centering
+  \caption{Available names for the \option*{color} option.}\label{tab:color}
+  \begin{tabular}{>{\ttfamily}ll}
+    \toprule
+      \rmfamily\bfseries Name & \bfseries Function \\
+    \midrule
+      C1 & carbon 1 \\
+      C2 & carbon 2 \\
+      O-C2 & oxygen of the hydroxy group at carbon 2 \\
+      H-C2 & hydrogen of the hydroxy group at carbon 2 \\
+      C3 & carbon 3 \\
+      O-C3 & oxygen of the hydroxy group at carbon 3 \\
+      H-C3 & hydrogen of the hydroxy group at carbon 3 \\
+      C4 & carbon 4 \\
+      O-C4 & oxygen of the hydroxy group at carbon 4 \\
+      H-C4 & hydrogen of the hydroxy group at carbon 4 \\
+      C5 & carbon 5 \\
+      O-C5 & oxygen of the hydroxy group at carbon 5 \\
+      H-C5 & hydrogen of the hydroxy group at carbon 5 \\
+      C6 & carbon 6 \\
+      O-C6 & oxygen of the hydroxy group at carbon 6 \\
+      H-C6 & hydrogen of the hydroxy group at carbon 6 \\
+      anomerO & oxygen of the anomeric hydroxy group\slash aldehyde oxygen \\
+      anomerH & hydrogen of the anomeric hydroxy group \\
+      ringO & oxygen in the ring \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \subsection{Defining Shortcuts}\label{sec:defining-shortcuts}
 
@@ -183,7 +228,7 @@ page~\pageref{tab:predefined-aldoses}.  They don't have any predefined options
 (except for \option{hexose}, \option{pentose} \etc).
 
 \begin{sidewaystable}
-  \setcarbohydrate{model={fischer=skeleton}}
+  \setcarbohydrates{model={fischer=skeleton}}
   \caption{Overview over the predefined aldoses.}
   \label{tab:predefined-aldoses}
   \begin{tabu}{*{8}{X[c]<{\strut}}}
@@ -192,29 +237,29 @@ page~\pageref{tab:predefined-aldoses}.  They don't have any predefined options
       \gulose & \idose   & \galactose & \talose \\
       \cs{allose} & \cs{altrose} & \cs{glucose}   & \cs{mannose} &
       \cs{gulose} & \cs{idose}   & \cs{galactose} & \cs{talose} \\
-      \iupac{\D\-Allose}    & \iupac{\D\-Altrose} &
-      \iupac{\D\-Glucose}   & \iupac{\D\-Mannose} &
-      \iupac{\D\-Gulose}    & \iupac{\D\-Idose} &
-      \iupac{\D\-Galactose} & \iupac{\D\-Talose} \\
+      \iupac{\D-Allose}    & \iupac{\D-Altrose} &
+      \iupac{\D-Glucose}   & \iupac{\D-Mannose} &
+      \iupac{\D-Gulose}    & \iupac{\D-Idose} &
+      \iupac{\D-Galactose} & \iupac{\D-Talose} \\
     \midrule
       \ribose & \arabinose & \xylose & \lyxose & \desoxyribose \\
       \cs{ribose} & \cs{arabinose} & \cs{xylose} & \cs{lyxose} &
       \multicolumn{2}{l}{\cs{desoxyribose}} \\
-      \iupac{\D\-Ribose} & \iupac{\D\-Arabinose} &
-      \iupac{\D\-Xylose} & \iupac{\D\-Lyxose} &
-      \iupac{\D\-Desoxy\|ribose} \\
+      \iupac{\D-Ribose} & \iupac{\D-Arabinose} &
+      \iupac{\D-Xylose} & \iupac{\D-Lyxose} &
+      \iupac{\D-Desoxy|ribose} \\
     \midrule
       \erythrose & \threose & \glycerinaldehyde \\
       \cs{erythrose} & \cs{threose} & \multicolumn{2}{l}{\cs{glycerinaldehyde}} \\
-      \iupac{\D\-Erythrose} & \iupac{\D\-Threose} &
-      \iupac{\D\-Glycerin\|aldehyde} \\
+      \iupac{\D-Erythrose} & \iupac{\D-Threose} &
+      \iupac{\D-Glycerin|aldehyde} \\
     \bottomrule
   \end{tabu}
 \end{sidewaystable}
 
 \subsection{Available Models}\label{sec:available-models}
 
-\carbohydrates\ implements different models how to draw carbohydrates:
+\carbohydrates\ implements different models for drawing carbohydrates:
 \begin{itemize}
   \item Fischer -- skeleton: the Fischer representation with only a skeleton
     formula.
@@ -251,10 +296,10 @@ neither pyranose nor furanose forms of trioses exist.
   \threose[model=haworth,ring]
 \end{example}
 
-Actually the above is not true: the chain forms are not available in all
+\textbf{Actually the above is not true: the chain forms are not available in all
 models for all aldoses.  As said in section~\ref{sec:available-models} the
-chair model is only implemented for aldohexoses.  Also for chains are not
-implemented for tetroses and trioses in the Haworth model.
+chair model is only implemented for aldohexoses.  Also chains are not
+implemented for tetroses and trioses in the Haworth model.}
 
 \subsection{Default Settings}
 \begin{commands}
@@ -263,34 +308,48 @@ implemented for tetroses and trioses in the Haworth model.
   \command{setcarbohydratedefaults}[\marg{csname}\marg{options}]
     Set options for a predefined carbohydrate within the current scope. The
     first argument \meta{csname} is the macro name of the shortcut (see
-    section~\ref{sec:defining-shortcuts}) \emph{without} leading backslash.
+    section~\ref{sec:defining-shortcuts}).
 \end{commands}
 
 \begin{example}
   \setatomsep{2.5em}
-  \setcarbohydratedefaults{glucose}{ring,model=haworth,anomer=undetermined}
+  \setcarbohydratedefaults\glucose{ring,model=haworth,anomer=undetermined}
   \glucose\
   \mannose
 \end{example}
 
+\subsection{Colors}\label{sec:colors}
+For educating purposes it may be useful to be able to color certain atoms. The
+\option{color} option allows this.
+\begin{example}
+  \setcarbohydrates{model=chair}
+  \setatomsep{2.5em}
+  \schemestart
+    \glucose[color={anomerO}{red},color={O-C5}{green},color={H-C5}{blue}]
+    \arrow{<=>}
+    \glucose[ring,color={anomerO}{red},color={ringO}{green},color={anomerH}{blue}]
+  \schemestop
+\end{example}
 
-\section{Restrictions and TODOs}
-\subsection{TODOs}
-
-There are still a number of missing features that I plan to implement
-someday such as:
+\section{\texorpdfstring{\textsc{todo}}{TODO}s}
+There are still quite a number of missing features that I'd like to implement
+some day such as
 \begin{itemize}
   \item ring forms for \laevus-carbohydrates,
-  \item support for ketoses and
+  \item support for both chair conformations and the boat conformation,
+  \item support for ketoses, and
   \item support for oxidized and reduzed forms.
 \end{itemize}
+There is no time table, though -- wether these features will be implemented
+any time soon is undecided.
 
-\section{About the Examples}
+\section{About the Examples in this Manual}
 All macros used in the examples either belong to \carbohydrates\ and are
-described in this manual or they belong to either \pkg{chemfig} or
-\bnd{chemmacros}~\cite{bnd:chemmacros}\footnote{That is if they're not
-  standard \LaTeX\ macros.}.  I encourage you to take a look at those packages
-if you don't know them already.
+described in this manual or they belong to either
+\pkg{chemfig}~\cite{pkg:chemfig}, \pkg{chemmacros}~\cite{pkg:chemmacros},
+\pkg{chemformula}~\cite{pkg:chemformula}, or are standard \LaTeX\ macros.  I
+encourage you to take a look at the packages for typesetting chemistry
+documents.
 
 The \pkg{chemfig} settings have been adjusted for the examples in this
 manual.  Specifically the preamble of this document makes these settings:
@@ -304,8 +363,9 @@ manual.  Specifically the preamble of this document makes these settings:
   \setbondoffset{0.18265 em}
   \setbondstyle{line width = \bondwidth}
   \setcrambond
-    {\the\dimexpr \bondwidth * 2 + \bondboldwidth \relax}
-    {\bondwidth}{\bondhashlength}
+    {\dimexpr\bondwidth*2 + \bondboldwidth\relax}
+    {\bondwidth}
+    {\bondhashlength}
   \renewcommand*\printatom[1]{{\small\ensuremath{\mathsf{#1}}}}
 \end{sourcecode}
 These settings are taken from~\cite{texdev}.  Search the page for

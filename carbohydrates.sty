@@ -8,7 +8,7 @@
 % Web:    https://github.com/cgnieder/carbohydrates
 % E-Mail: contact@mychemistry.eu
 % --------------------------------------------------------------------------
-% Copyright 2014 Clemens Niederberger
+% Copyright 2014-2015 Clemens Niederberger
 % 
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3
@@ -25,8 +25,8 @@
 % If you have any ideas, questions, suggestions or bugs to report, please
 % feel free to contact me.
 % --------------------------------------------------------------------------
-\def\cbhdr@date{2014/04/25}
-\def\cbhdr@version{v0.0}
+\def\cbhdr@date{2015/12/01}
+\def\cbhdr@version{v0.1}
 \def\cbhdr@info{carbohydrate molecules with chemfig}
 
 \ProvidesPackage{carbohydrates}[%
@@ -34,21 +34,31 @@
   \cbhdr@version\space
   \cbhdr@info\space (CN)]
 
-\RequirePackage{cnltx-base}
+\RequirePackage{etoolbox}
 \RequirePackage{chemfig,xcolor}
 
 % ==========================================================================
 % message handling
 % generic help message:
-\def\cbhdr@error@message{%
+\newrobustcmd\cbhdr@create@message[2]{%
+  \ifstrequal{#1}{Error}
+    {%
+      \lowercase{\csdef{cbhdr@#1}}##1{%
+        \csuse{Package#1}{carbohydrates}{##1}{#2}}%
+    }{%
+      \lowercase{\csdef{cbhdr@#1}}##1{%
+        \csuse{Package#1}{carbohydrates}{##1}}%
+    }}
+
+\newcommand*\cbhdr@error@message{%
   For details have a look at the `carbohydrates' manual.%
 }
 
 % create message macros:
-\cnltx@create@generic@message{cbhdr}{carbohydrates}{Error}{\cbhdr@error@message}
-\cnltx@create@generic@message{cbhdr}{carbohydrates}{Warning}{}
-\cnltx@create@generic@message{cbhdr}{carbohydrates}{WarningNoLine}{}
-\cnltx@create@generic@message{cbhdr}{carbohydrates}{Info}{}
+\cbhdr@create@message{Error}{\cbhdr@error@message}
+\cbhdr@create@message{Warning}{}
+\cbhdr@create@message{WarningNoLine}{}
+\cbhdr@create@message{Info}{}
 
 \newcommand*\cbhdr@ring@error[2]{%
   \cbhdr@error{#1 can't form #2 rings}%
@@ -74,22 +84,39 @@
   \protected\csdef{cbhdr@aldo#1@chair@ring@furanose}{\cbhdr@chair@error{#1s}}%
 }
 
+\newrobustcmd\cbhdr@expand@x[2]{%
+  \begingroup\edef\cbhdr@expand@tmp{\endgroup\unexpanded{#1}{#2}}%
+  \cbhdr@expand@tmp
+}
+\newrobustcmd\cbhdr@expand@nx[3]{%
+  \begingroup\edef\cbhdr@expand@tmp{\endgroup\unexpanded{#1{#2}}{#3}}%
+  \cbhdr@expand@tmp
+}
+
+\newcommand*\cbhdr@stripbs{\expandafter\@gobble\string}
+
 % ==========================================================================
 % colors
-\colorlet{cbhdr@anomerO}{black}
-\colorlet{cbhdr@anomerH}{black}
-\colorlet{cbhdr@ringO}{black}
+\newrobustcmd*\cbhdr@defcolor[2]{\colorlet{cbhdr@#1}{#2}}
 
-\newcommand*\cbhdr@atom@color[2]{\unexpanded{\textcolor{#1}{#2}}}
+\cbhdr@defcolor{C1}{black}
+\cbhdr@defcolor{C6}{black}
+\cbhdr@defcolor{O-C6}{black}
+\cbhdr@defcolor{H-C6}{black}
+\cbhdr@defcolor{anomerO}{black}
+\cbhdr@defcolor{anomerH}{black}
+\cbhdr@defcolor{ringO}{black}
+
+\newcommand*\cbhdr@atom@color[2]{\unexpanded{\textcolor{cbhdr@#1}{#2}}}
 
 % ==========================================================================
 % wavy bonds:
 \usetikzlibrary{decorations.pathmorphing}
-\pgfdeclaredecoration{cbhdr complete sines}{initial}{
+\pgfdeclaredecoration{cbhdr wave}{initial}{
   \state{initial}[
-    width=+0pt,
-    next state=sine,
-    persistent precomputation={
+    width = +0pt ,
+    next state = sine,
+    persistent precomputation = {
       \pgfmathsetmacro\matchinglength{
         \pgfdecoratedinputsegmentlength /
         int(\pgfdecoratedinputsegmentlength/\pgfdecorationsegmentlength)
@@ -102,22 +129,22 @@
       \pgfpoint
         {0.25\pgfdecorationsegmentlength}
         {0.5\pgfdecorationsegmentamplitude}
-    }
+      }
     \pgfpathcosine{
       \pgfpoint
         {0.25\pgfdecorationsegmentlength}
         {-0.5\pgfdecorationsegmentamplitude}
-    }
+      }
     \pgfpathsine{
       \pgfpoint
         {0.25\pgfdecorationsegmentlength}
         {-0.5\pgfdecorationsegmentamplitude}
-    }
+      }
     \pgfpathcosine{
       \pgfpoint
         {0.25\pgfdecorationsegmentlength}
         {0.5\pgfdecorationsegmentamplitude}
-    }
+      }
   }
   \state{final}{}
 }
@@ -128,45 +155,46 @@
       decorate,
       decoration =
         {
-          cbhdr complete sines,
-          amplitude   = 0.23em ,
+          amplitude   = 0.23*\CF@atom@sep/3 ,
           post length = 0 pt,
           pre length  = 0 pt,
           % Use the atom spacing: saved 
-          segment length = 
-            \the\dimexpr\csname CF@atom@sep\endcsname/5\relax
+          segment length = \CF@atom@sep/5 ,
+          cbhdr wave
         }
     }
 }
 
 % ==========================================================================
 % sub molecules for all the modular building of the molecules later
+\newcommand*\cbhdr@C[1]{\cbhdr@atom@color{C#1}{C}}
+
 \newcommand*\cbhdr@OH[1]{%
-  \cbhdr@atom@color{cbhdr@O-C#1}{O}|%
-  \cbhdr@atom@color{cbhdr@H-C#1}{H}%
+  \cbhdr@atom@color{O-C#1}{O}|%
+  \cbhdr@atom@color{H-C#1}{H}%
 }
 \newcommand*\cbhdr@HO[1]{%
-  \cbhdr@atom@color{cbhdr@H-C#1}{H}|%
-  \cbhdr@atom@color{cbhdr@O-C#1}{O}%
+  \cbhdr@atom@color{H-C#1}{H}|%
+  \cbhdr@atom@color{O-C#1}{O}%
 }
-\newcommand*\cbhdr@ring@O{\cbhdr@atom@color{cbhdr@ringO}{O}}
-\newcommand*\cbhdr@anomer@O{\cbhdr@atom@color{cbhdr@anomerO}{O}}
+\newcommand*\cbhdr@ring@O{\cbhdr@atom@color{ringO}{O}}
+\newcommand*\cbhdr@anomer@O{\cbhdr@atom@color{anomerO}{O}}
 \newcommand*\cbhdr@anomer@OH{%
-  \cbhdr@atom@color{cbhdr@anomerO}{O}|%
-  \cbhdr@atom@color{cbhdr@anomerH}{H}%
+  \cbhdr@atom@color{anomerO}{O}|%
+  \cbhdr@atom@color{anomerH}{H}%
 }
 \newcommand*\cbhdr@anomer@HO{%
-  \cbhdr@atom@color{cbhdr@anomerH}{H}|%
-  \cbhdr@atom@color{cbhdr@anomerO}{O}%
+  \cbhdr@atom@color{anomerH}{H}|%
+  \cbhdr@atom@color{anomerO}{O}%
 }
 
-\newrobustcmd*\cbhdr@definesubmol@expand{\cnltx@expandargs(nx)\definesubmol}
-\newrobustcmd*\cbhdr@chemfig@expand{\cnltx@expandargs(x)\chemfig}
+\newrobustcmd*\cbhdr@definesubmol@expand{\cbhdr@expand@nx\definesubmol}
+\newrobustcmd*\cbhdr@chemfig@expand{\cbhdr@expand@x\chemfig}
 
 \newrobustcmd\cbhdr@define@Csubmols[1]{%
-  \colorlet{cbhdr@O-C#1}{black}%
-  \colorlet{cbhdr@H-C#1}{black}%
-  \colorlet{cbhdr@C#1}{black}%
+  \cbhdr@defcolor{O-C#1}{black}%
+  \cbhdr@defcolor{H-C#1}{black}%
+  \cbhdr@defcolor{C#1}{black}%
   % aldohexoses:
   % fischer:
   % skeletons
@@ -224,26 +252,26 @@
 \cbhdr@definesubmol@expand{cbhdr@haworth@furanose@C4@OHr@C5@OHr}{(
   -[:90,.5](<[:30,.5]\cbhdr@OH{5})
   -[:120,.5]
-  -[:-180,.5]HO
+  -[:-180,.5,,2]HO
 )}
 % 4=l, 5=r
 \cbhdr@definesubmol@expand{cbhdr@haworth@furanose@C4@OHl@C5@OHr}{(
   -[:-90,.5](<:[:150,.5]\cbhdr@HO{5})
   -[:-120,.5]
-  -[:180,.5]HO
+  -[:180,.5,,2]HO
 )}
 
 % 4=r, 5=l
 \cbhdr@definesubmol@expand{cbhdr@haworth@furanose@C4@OHr@C5@OHl}{(
   -[:90,.5](<:[:30,.5]\cbhdr@OH{5})
   -[:120,.5]
-  -[:-180,.5]HO
+  -[:-180,.5,,2]HO
 )}
 % 4=l, 5=l
 \cbhdr@definesubmol@expand{cbhdr@haworth@furanose@C4@OHl@C5@OHl}{(
   -[:-90,.5](<[:150,.5]\cbhdr@HO{5})
   -[:-120,.5]
-  -[:180,.5]HO
+  -[:180,.5,,2]HO
 )}
 
 % 4=r, 5=0
@@ -266,7 +294,7 @@
 \cbhdr@definesubmol@expand{cbhdr@fischer@skeleton@OHbeta}{(-[:180]\cbhdr@anomer@HO)}
 \cbhdr@definesubmol@expand{cbhdr@fischer@skeleton@OHundetermined}{(-[:0]\cbhdr@anomer@OH)}
 
-\cbhdr@definesubmol@expand{cbhdr@fischer@aldehyde}{(=_[:30]\cbhdr@anomer@O)(-[:150]H)}
+\cbhdr@definesubmol@expand{cbhdr@fischer@aldehyde}{(=[:30]\cbhdr@anomer@O)(-[:150]H)}
 \cbhdr@definesubmol@expand{cbhdr@fischer@OHalpha}{(-[:0]\cbhdr@anomer@OH)(-[:180]H)}
 \cbhdr@definesubmol@expand{cbhdr@fischer@OHbeta}{(-[:180]\cbhdr@anomer@HO)(-[:0]H)}
 \cbhdr@definesubmol@expand{cbhdr@fischer@OHundetermined}{(-[:0]\cbhdr@anomer@HO)(-[:180]H)}
@@ -294,8 +322,8 @@
 \protected\def\cbhdr@newchain#1{\cbhdr@newchain@aux@i{#1}}
 \protected\def\cbhdr@newchain@aux@i#1#2#{\cbhdr@newchain@aux@ii{#1}{#2}}
 \protected\def\cbhdr@newchain@aux@ii#1#2#3{%
-  \protected\csdef{\cnltx@stripbs#1@aux}#2\q@stop{\cbhdr@chemfig@expand{#3}}%
-  \newrobustcmd*#1[1]{\csuse{\cnltx@stripbs#1@aux}##1\q@stop}%
+  \protected\csdef{\cbhdr@stripbs#1@aux}#2\q@stop{\cbhdr@chemfig@expand{#3}}%
+  \newrobustcmd*#1[1]{\csuse{\cbhdr@stripbs#1@aux}##1\q@stop}%
 }
 
 % the first argument of a ring always is alpha/beta, the following arguments
@@ -307,8 +335,8 @@
 \protected\def\cbhdr@newring#1{\cbhdr@newring@aux@i{#1}}
 \protected\def\cbhdr@newring@aux@i#1#2#{\cbhdr@newring@aux@ii{#1}{#2}}
 \protected\def\cbhdr@newring@aux@ii#1#2#3{%
-  \protected\csdef{\cnltx@stripbs#1@aux}#2\q@stop{\cbhdr@chemfig@expand{#3}}%
-  \newrobustcmd*#1[1]{\csuse{\cnltx@stripbs#1@aux}{\cbhdr@anomer}##1\q@stop}%
+  \protected\csdef{\cbhdr@stripbs#1@aux}#2\q@stop{\cbhdr@chemfig@expand{#3}}%
+  \newrobustcmd*#1[1]{\csuse{\cbhdr@stripbs#1@aux}{\cbhdr@anomer}##1\q@stop}%
 }
 
 % ==========================================================================
@@ -318,7 +346,7 @@
 % \<module>@<model>@<chain>/<ring>(@<ringtype>)
 %
 % --------------------------------------------------------------------------
-% Fischer - skeleton formulae
+% Fischer - skeleton formulas
 
 %%%
 % hexoses
@@ -329,7 +357,7 @@
   -[:-90]!{cbhdr@fischer@skeleton@C3@OH#2}
   -[:-90]!{cbhdr@fischer@skeleton@C4@OH#3}
   -[:-90]!{cbhdr@fischer@skeleton@C5@OH#4}
-  -[:-90](-[:0]OH)
+  -[:-90](-[:0]\cbhdr@OH{6})
 }
 
 % pyranoses
@@ -339,7 +367,7 @@
   -[:-90]!{cbhdr@fischer@skeleton@C3@OH#3}
   -[:-90]!{cbhdr@fischer@skeleton@C4@OH#4}
   -[:-90](-[:0]\cbhdr@ring@O-?)
-  -[:-90](-[:0]OH)
+  -[:-90](-[:0]\cbhdr@OH{6})
 }
 
 % furanoses
@@ -349,7 +377,7 @@
   -[:-90]!{cbhdr@fischer@skeleton@C3@OH#3}
   -[:-90](-[:0]\cbhdr@ring@O-?)
   -[:-90]!{cbhdr@fischer@skeleton@C5@OH#5}
-  -[:-90](-[:0]OH)
+  -[:-90](-[:0]\cbhdr@OH{6})
 }
 
 %%%
@@ -360,7 +388,7 @@
   -[:-90]!{cbhdr@fischer@skeleton@C2@OH#1}
   -[:-90]!{cbhdr@fischer@skeleton@C3@OH#2}
   -[:-90]!{cbhdr@fischer@skeleton@C4@OH#3}
-  -[:-90](-[:0]OH)
+  -[:-90](-[:0]\cbhdr@OH{5})
 }
 
 % pyranoses
@@ -378,7 +406,7 @@
   -[:-90]!{cbhdr@fischer@skeleton@C2@OH#2}
   -[:-90]!{cbhdr@fischer@skeleton@C3@OH#3}
   -[:-90](-[:0]\cbhdr@ring@O-?)
-  -[:-90](-[:0]OH)
+  -[:-90](-[:0]\cbhdr@OH{5})
 }
 
 %%%
@@ -388,7 +416,7 @@
   !{cbhdr@fischer@skeleton@aldehyde}
   -[:-90]!{cbhdr@fischer@skeleton@C2@OH#1}
   -[:-90]!{cbhdr@fischer@skeleton@C3@OH#2}
-  -[:-90](-[:0]OH)
+  -[:-90](-[:0]\cbhdr@OH{4})
 }
 
 % pyranoses
@@ -408,7 +436,7 @@
 \cbhdr@newchain\cbhdr@aldotriose@fischer@skeleton@chain#1{%
   !{cbhdr@fischer@skeleton@aldehyde}
   -[:-90]!{cbhdr@fischer@skeleton@C2@OH#1}
-  -[:-90](-[:0]OH)
+  -[:-90](-[:0]\cbhdr@OH{3})
 }
 
 % pyranoses
@@ -424,34 +452,34 @@
 % hexoses
 % chain
 \cbhdr@newchain\cbhdr@aldohexose@fischer@chain#1#2#3#4{%
-  C!{cbhdr@fischer@aldehyde}
-  -[:-90]C!{cbhdr@fischer@C2@OH#1}
-  -[:-90]C!{cbhdr@fischer@C3@OH#2}
-  -[:-90]C!{cbhdr@fischer@C4@OH#3}
-  -[:-90]C!{cbhdr@fischer@C5@OH#4}
-  -[:-90]C(-[:0]OH)(-[:180]H)
+  \cbhdr@C{1}!{cbhdr@fischer@aldehyde}
+  -[:-90]\cbhdr@C{2}!{cbhdr@fischer@C2@OH#1}
+  -[:-90]\cbhdr@C{3}!{cbhdr@fischer@C3@OH#2}
+  -[:-90]\cbhdr@C{4}!{cbhdr@fischer@C4@OH#3}
+  -[:-90]\cbhdr@C{5}!{cbhdr@fischer@C5@OH#4}
+  -[:-90]\cbhdr@C{6}(-[:0]\cbhdr@OH{6})(-[:180]H)
   -[:-90]H
 }
 
 % pyranoses
 \cbhdr@newring\cbhdr@aldohexose@fischer@ring@pyranose#1#2#3#4#5{%
-  C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
-  -[:-90]C!{cbhdr@fischer@C2@OH#2}
-  -[:-90]C!{cbhdr@fischer@C3@OH#3}
-  -[:-90]C!{cbhdr@fischer@C4@OH#4}
-  -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
-  -[:-90]C(-[:0]OH)(-[:180]H)
+  \cbhdr@C{1}!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
+  -[:-90]\cbhdr@C{2}!{cbhdr@fischer@C2@OH#2}
+  -[:-90]\cbhdr@C{3}!{cbhdr@fischer@C3@OH#3}
+  -[:-90]\cbhdr@C{4}!{cbhdr@fischer@C4@OH#4}
+  -[:-90]\cbhdr@C{5}(-[:0]\cbhdr@ring@O-?)(-[:180]H)
+  -[:-90]\cbhdr@C{6}(-[:0]\cbhdr@OH{6})(-[:180]H)
   -[:-90]H
 }
 
 % furanoses
 \cbhdr@newring\cbhdr@aldohexose@fischer@ring@furanose#1#2#3#4#5{%
-  C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
-  -[:-90]C!{cbhdr@fischer@C2@OH#2}
-  -[:-90]C!{cbhdr@fischer@C3@OH#3}
-  -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
-  -[:-90]C!{cbhdr@fischer@C5@OH#5}
-  -[:-90]C(-[:0]OH)(-[:180]H)
+  \cbhdr@C{1}!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
+  -[:-90]\cbhdr@C{2}!{cbhdr@fischer@C2@OH#2}
+  -[:-90]\cbhdr@C{3}!{cbhdr@fischer@C3@OH#3}
+  -[:-90]\cbhdr@C{4}(-[:0]\cbhdr@ring@O-?)(-[:180]H)
+  -[:-90]\cbhdr@C{5}!{cbhdr@fischer@C5@OH#5}
+  -[:-90]\cbhdr@C{6}(-[:0]\cbhdr@OH{6})(-[:180]H)
   -[:-90]H
 }
 
@@ -459,31 +487,31 @@
 % pentoses
 % chain
 \cbhdr@newchain\cbhdr@aldopentose@fischer@chain#1#2#3{%
-  C!{cbhdr@fischer@aldehyde}
-  -[:-90]C!{cbhdr@fischer@C2@OH#1}
-  -[:-90]C!{cbhdr@fischer@C3@OH#2}
-  -[:-90]C!{cbhdr@fischer@C4@OH#3}
-  -[:-90]C(-[:0]OH)(-[:180]H)
+  \cbhdr@C{1}!{cbhdr@fischer@aldehyde}
+  -[:-90]\cbhdr@C{2}!{cbhdr@fischer@C2@OH#1}
+  -[:-90]\cbhdr@C{3}!{cbhdr@fischer@C3@OH#2}
+  -[:-90]\cbhdr@C{4}!{cbhdr@fischer@C4@OH#3}
+  -[:-90]\cbhdr@C{5}(-[:0]\cbhdr@OH{5})(-[:180]H)
   -[:-90]H
 }
 
 % pyranoses
 \cbhdr@newring\cbhdr@aldopentose@fischer@ring@pyranose#1#2#3#4{%
-  C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
-  -[:-90]C!{cbhdr@fischer@C2@OH#2}
-  -[:-90]C!{cbhdr@fischer@C3@OH#3}
-  -[:-90]C!{cbhdr@fischer@C4@OH#4}
-  -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
+  \cbhdr@C{1}!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
+  -[:-90]\cbhdr@C{2}!{cbhdr@fischer@C2@OH#2}
+  -[:-90]\cbhdr@C{3}!{cbhdr@fischer@C3@OH#3}
+  -[:-90]\cbhdr@C{4}!{cbhdr@fischer@C4@OH#4}
+  -[:-90]\cbhdr@C{5}(-[:0]\cbhdr@ring@O-?)(-[:180]H)
   -[:-90]H
 }
 
 % furanoses
 \cbhdr@newring\cbhdr@aldopentose@fischer@ring@furanose#1#2#3#4{%
-  C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
-  -[:-90]C!{cbhdr@fischer@C2@OH#2}
-  -[:-90]C!{cbhdr@fischer@C3@OH#3}
-  -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
-  -[:-90]C(-[:0]OH)(-[:180]H)
+  \cbhdr@C{1}!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
+  -[:-90]\cbhdr@C{2}!{cbhdr@fischer@C2@OH#2}
+  -[:-90]\cbhdr@C{3}!{cbhdr@fischer@C3@OH#3}
+  -[:-90]\cbhdr@C{4}(-[:0]\cbhdr@ring@O-?)(-[:180]H)
+  -[:-90]\cbhdr@C{5}(-[:0]\cbhdr@OH{5})(-[:180]H)
   -[:-90]H
 }
 
@@ -491,10 +519,10 @@
 % tetroses
 % chain
 \cbhdr@newchain\cbhdr@aldotetrose@fischer@chain#1#2{%
-  C!{cbhdr@fischer@aldehyde}
-  -[:-90]C!{cbhdr@fischer@C2@OH#1}
-  -[:-90]C!{cbhdr@fischer@C3@OH#2}
-  -[:-90]C(-[:0]OH)(-[:180]H)
+  \cbhdr@C{1}!{cbhdr@fischer@aldehyde}
+  -[:-90]\cbhdr@C{2}!{cbhdr@fischer@C2@OH#1}
+  -[:-90]\cbhdr@C{3}!{cbhdr@fischer@C3@OH#2}
+  -[:-90]\cbhdr@C{4}(-[:0]\cbhdr@OH{4})(-[:180]H)
   -[:-90]H
 }
 
@@ -503,10 +531,10 @@
 
 % furanoses
 \cbhdr@newring\cbhdr@aldotetrose@fischer@ring@furanose#1#2#3{%
-  C!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
-  -[:-90]C!{cbhdr@fischer@C2@OH#2}
-  -[:-90]C!{cbhdr@fischer@C3@OH#3}
-  -[:-90]C(-[:0]\cbhdr@ring@O-?)(-[:180]H)
+  \cbhdr@C{1}!{cbhdr@fischer@OH#1}(-[:90]-[:0]-?)
+  -[:-90]\cbhdr@C{2}!{cbhdr@fischer@C2@OH#2}
+  -[:-90]\cbhdr@C{3}!{cbhdr@fischer@C3@OH#3}
+  -[:-90]\cbhdr@C{4}(-[:0]\cbhdr@ring@O-?)(-[:180]H)
   -[:-90]H
 }
 
@@ -514,9 +542,9 @@
 % trioses
 % chain
 \cbhdr@newchain\cbhdr@aldotriose@fischer@chain#1{%
-  C!{cbhdr@fischer@aldehyde}
-  -[:-90]C!{cbhdr@fischer@C2@OH#1}
-  -[:-90]C(-[:0]OH)(-[:180]H)
+  \cbhdr@C{1}!{cbhdr@fischer@aldehyde}
+  -[:-90]\cbhdr@C{2}!{cbhdr@fischer@C2@OH#1}
+  -[:-90]\cbhdr@C{3}(-[:0]\cbhdr@OH{3})(-[:180]H)
   -[:-90]H
 }
 
@@ -537,7 +565,7 @@
 % chain
 \cbhdr@newchain\cbhdr@aldohexose@haworth@chain#1#2#3#4{%
   -[:30]
-  ?(-[:90,.5]-[:150,.5]HO)!{cbhdr@haworth@C5@OH#4}-[,,,,draw=none]
+  ?(-[:90,.5]-[:150,.5]\cbhdr@HO{6})!{cbhdr@haworth@C5@OH#4}-[,,,,draw=none]
   -[:-30,,1,,draw=none](=_[:0]\cbhdr@anomer@O)
   \cbhdr@incr[:-150]!{cbhdr@haworth@C2@OH#1}
   -[:-180,,,,\cbhdr@thick]!{cbhdr@haworth@C3@OH#2}
@@ -547,7 +575,7 @@
 % pyranoses
 \cbhdr@newring\cbhdr@aldohexose@haworth@ring@pyranose#1#2#3#4#5{%
   -[:30]
-  ?(-[:90,.5]-[:150,.5]HO)-\cbhdr@ring@O
+  ?(-[:90,.5]-[:150,.5]\cbhdr@HO{6})-\cbhdr@ring@O
   -[:-30]!{cbhdr@haworth@OH#1}
   \cbhdr@incr[:-150]!{cbhdr@haworth@C2@OH#2}
   -[:-180,,,,\cbhdr@thick]!{cbhdr@haworth@C3@OH#3}
@@ -569,7 +597,7 @@
   ?-[:-20,,,,draw=none](=_[:0]\cbhdr@anomer@O)
   -[:-110]!{cbhdr@haworth@furanose@C2@OH#1}
   -[:180,1.1954]!{cbhdr@haworth@furanose@C3@OH#2}
-  -[:110]?[,,{draw=none}](-[:90,.5]-[:150,.5]HO)
+  -[:110]?[,,{draw=none}](-[:90,.5]-[:150,.5]\cbhdr@HO{5})
   !{cbhdr@haworth@furanose@C4@OH#3}
 }
 
@@ -588,7 +616,7 @@
   \cbhdr@ring@O?-[:-20]!{cbhdr@haworth@OH#1}
   -[:-110]!{cbhdr@haworth@furanose@C2@OH#2}
   -[:180,1.1954]!{cbhdr@haworth@furanose@C3@OH#3}
-  -[:110]?(-[:90,.5]-[:150,.5]HO)
+  -[:110]?(-[:90,.5]-[:150,.5]\cbhdr@HO{5})
 }
 
 %%%
@@ -626,7 +654,7 @@
 % chain
 \cbhdr@newchain\cbhdr@aldohexose@chair@chain#1#2#3#4{%
   -[:-10]
-  ?(-[:150,.75]-[:90,.5,,1]OH)!{cbhdr@chair@C5@OH#4}-[:10,,,,draw=none]
+  ?(-[:150,.75]-[:90,.5,,1]\cbhdr@OH{6})!{cbhdr@chair@C5@OH#4}-[:10,,,,draw=none]
   -[:-50,,1,,draw=none](=_[:70]\cbhdr@anomer@O)
   \cbhdr@incr[:-170]!{cbhdr@chair@C2@OH#1}
   -[:-190,,,,\cbhdr@thick]!{cbhdr@chair@C3@OH#2}
@@ -636,7 +664,7 @@
 % pyranoses
 \cbhdr@newring\cbhdr@aldohexose@chair@ring@pyranose#1#2#3#4#5{%
   -[:-10]
-  ?(-[:150,.75]-[:90,.5,,1]OH)-[:10]\cbhdr@ring@O
+  ?(-[:150,.75]-[:90,.5,,1]\cbhdr@OH{6})-[:10]\cbhdr@ring@O
   -[:-50]!{cbhdr@chair@OH#1}
   \cbhdr@incr[:170]!{cbhdr@chair@C2@OH#2}
   -[:190,,,,\cbhdr@thick]!{cbhdr@chair@C3@OH#3}
@@ -729,7 +757,8 @@
       chain ,
       anomer = alpha ,
       length = 6
-    }
+    } ,
+    color/.code 2 args = \cbhdr@defcolor{#1}{#2}
 }
 \pgfqkeys{/cbhdr}{defaults}
 
@@ -754,13 +783,13 @@
 }
 
 \protected\def\cbhdr@newaldose#1[#2]#3{%
-  \cnltx@expandargs(x)
+  \cbhdr@expand@x
   \pgfkeys{
     cbhdr/.cd,
-      \cnltx@stripbs#1-defaults/.style={\unexpanded{#2}}
+      \cbhdr@stripbs#1-defaults/.style={\unexpanded{#2}}
   }%
   \newrobustcmd*#1[1][]{%
-    \expandafter\cbhdr@carbohydrate\expandafter{\cnltx@stripbs#1-defaults,##1}{#3}%
+    \expandafter\cbhdr@carbohydrate\expandafter{\cbhdr@stripbs#1-defaults,##1}{#3}%
   }%
 }
 
@@ -771,13 +800,13 @@
 }
 
 \protected\def\cbhdr@renewaldose#1[#2]#3{%
-  \cnltx@expandargs(x)
+  \cbhdr@expand@x
   \pgfkeys{
     cbhdr/.cd,
-      \cnltx@stripbs#1-defaults/.style={\unexpanded{#2}}
+      \cbhdr@stripbs#1-defaults/.style={\unexpanded{#2}}
   }%
   \renewrobustcmd*#1[1][]{%
-    \expandafter\cbhdr@carbohydrate\expandafter{\cnltx@stripbs#1-defaults,##1}{#3}%
+    \expandafter\cbhdr@carbohydrate\expandafter{\cbhdr@stripbs#1-defaults,##1}{#3}%
   }%
 }
 
@@ -787,13 +816,12 @@
 \newaldose \allose   [hexose]{rrrr}
 \newaldose \altrose  [hexose]{lrrr}
 \newaldose \glucose  [hexose]{rlrr}
-\newaldose \mannose  [hexose]{llrr}
 \newaldose \gulose   [hexose]{rrlr}
+\newaldose \mannose  [hexose]{llrr}
 \newaldose \idose    [hexose]{lrlr}
 \newaldose \galactose[hexose]{rllr}
 \newaldose \talose   [hexose]{lllr}
 
-% for the time being those are only partially implemented:
 % aldopentoses:
 \newaldose \ribose   [pentose]{rrr}
 \newaldose \arabinose[pentose]{lrr}
@@ -812,20 +840,21 @@
 % ==========================================================================
 % setup commands
 % general defaults:
-\newrobustcmd*\setcarbohydrate[1]{%
+\newrobustcmd*\setcarbohydrates[1]{%
   \pgfkeys{
     cbhdr/.cd ,
-      defaults/.style = { #1 } ,
+      defaults/.style = {#1} ,
       defaults
   }%
 }
 
 % defaults for particular carbohydrate defined with \newaldose:
 \newrobustcmd*\setcarbohydratedefaults[2]{%
+  \edef\cbhdr@tmpa{\cbhdr@stripbs#1}%
   \pgfkeys{
     cbhdr/.cd ,
-      #1-defaults/.style = { #2 } ,
-      #1-defaults
+      \cbhdr@tmpa-defaults/.style = { #2 } ,
+      \cbhdr@tmpa-defaults
   }%
 }
 
